@@ -126,9 +126,9 @@ int main(void)
 	  if(imu.dataReady()){
 
 		  imu.readIMU();
-		  Debug(printf("gx: %f\t gy: %f\t gz: %f\r\n",imu.getGyro(X),imu.getGyro(Y),imu.getGyro(Z)));
-		  Debug(printf("ax: %f\t ay: %f\t az: %f\r\n",imu.getAccel(X),imu.getAccel(Y),imu.getAccel(Z)));
-		  Debug(printf("Yaw: %f\t Pitch: %f\t Roll: %f\r\n",imu.getYaw(),imu.getPitch(),imu.getRoll()));
+		  Debug(printf("gx: %f\t gy: %f\t gz: %f\r\n",imu.Gyro(X),imu.Gyro(Y),imu.Gyro(Z)));
+		  Debug(printf("ax: %f\t ay: %f\t az: %f\r\n",imu.Accel(X),imu.Accel(Y),imu.Accel(Z)));
+		  Debug(printf("Yaw: %f\t Pitch: %f\t Roll: %f\r\n",imu.Yaw(),imu.Pitch(),imu.Roll()));
 		  Debug(HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin));
 	  }
 
