@@ -15,7 +15,7 @@ bool Ibus::ibusRead(){
     return true;
 }
 
-uint16_t Ibus::getRemoteData(remote rc) {
+uint16_t Ibus::remoteData(remote rc) {
 	return _ibus_data[rc];
 }
 

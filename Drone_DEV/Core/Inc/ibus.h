@@ -26,7 +26,7 @@ class Ibus
     public:
         Ibus(UART_HandleTypeDef* huart);
         bool ibusRead();
-        uint16_t getRemoteData(remote rc);
+        uint16_t remoteData(remote rc);
 
 
 
@@ -35,6 +35,8 @@ class Ibus
         uint8_t m_uart_rx_buffer[IBUS_LENGTH] = {0};
         uint16_t _ibus_data[IBUS_USER_CHANNELS];
         UART_HandleTypeDef* m_huart;
+
+    private:
         bool ibusIsValid();
         bool ibusChecksum();
         void ibusUpdate();
