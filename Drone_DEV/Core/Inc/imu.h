@@ -25,11 +25,11 @@ class IMU : private MPU9250
 		IMU(bool calibration);
 		IMU();
 		int8_t initialise(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate);
-		float getYaw();
-		float getPitch();
-		float getRoll();
-		float getAccel(axis axis);
-		float getGyro(axis axis);
+		float Yaw();
+		float Pitch();
+		float Roll();
+		float Accel(axis axis);
+		float Gyro(axis axis);
 		void readIMU();
 		bool dataReady();
 
@@ -46,6 +46,8 @@ class IMU : private MPU9250
 		float _beta = sqrt(3.0f / 4.0f) * _GyroMeasError;  // compute beta
 		float _GyroMeasDrift = M_PI * (1.0f / 180.0f);      // gyroscope measurement drift in rad/s/s (start at 0.0 deg/s/s)
 		float _zeta = sqrt(3.0f / 4.0f) * _GyroMeasDrift;  // compute zeta, the other free parameter in the Madgwick scheme usually set to a small or zero value
+
+	private:
 		void calculateMadgwickQuaternion();
 };
 

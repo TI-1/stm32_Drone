@@ -50,19 +50,19 @@ int8_t IMU::initialise(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate) {
 	return init_status;
 }
 
-float IMU::getYaw() {
+float IMU::Yaw() {
 	return _ypr[0];
 }
 
-float IMU::getPitch() {
+float IMU::Pitch() {
 	return _ypr[1];
 }
 
-float IMU::getRoll() {
+float IMU::Roll() {
 	return _ypr[2];
 }
 
-float IMU::getAccel(axis axis) {
+float IMU::Accel(axis axis) {
 	switch (axis){
 		case X:
 			return _a_xyz[0];
@@ -78,7 +78,7 @@ float IMU::getAccel(axis axis) {
 	}
 }
 
-float IMU::getGyro(axis axis) {
+float IMU::Gyro(axis axis) {
 	switch (axis){
 		case X:
 			return _g_xyz[0];
