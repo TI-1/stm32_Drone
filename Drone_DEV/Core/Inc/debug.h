@@ -10,7 +10,7 @@
 
 #include "usart.h"
 
-#ifdef DEBUG
+#ifdef MYDEBUG
 #define Debug(x) x
 #else
 #define Debug(x)
