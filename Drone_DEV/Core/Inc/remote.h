@@ -1,5 +1,5 @@
-#ifndef _IBUS_H_
-#define _IBUS_H_
+#ifndef _REMOTE_H_
+#define _REMOTE_H_
 
  #include "usart.h"
 #include "stdint.h"
@@ -21,12 +21,12 @@ enum remote{
 };
 
 
-class Ibus
+class Remote
 {
     public:
-        Ibus(UART_HandleTypeDef* huart);
-        bool ibusRead();
-        uint16_t remoteData(remote rc);
+        Remote(UART_HandleTypeDef* huart);
+        int16_t getRemoteData(remote rc);
+
 
 
 
@@ -40,5 +40,6 @@ class Ibus
         bool ibusIsValid();
         bool ibusChecksum();
         void ibusUpdate();
+        bool ibusRead();
 };
 #endif
