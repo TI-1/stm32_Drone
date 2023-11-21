@@ -76,3 +76,52 @@ void PID::setDOE() {
 float PID::getOutput() {
 	return _controllerOutput;
 }
+
+/**
+ * Method to set proportional constant
+ * @param kp proportional constant
+ */
+void PID::setkp(float kp) {
+	_kp = kp;
+
+}
+
+/**
+ * Method to set integral constant
+ * @param ki integral constant
+ */
+void PID::setki(float ki) {
+	_ki = ki;
+}
+
+/**
+ * Method to set derivative constant
+ * @param kd derivative constant
+ */
+void PID::setkd(float kd) {
+	_kd = kd;
+}
+
+/**
+ * Method to get current proportional constant
+ * @return proportional constant
+ */
+float PID::getkp() {
+	return _kp;
+}
+
+/**
+ * Method to get current integral constant
+ * @return integral constant
+ */
+float PID::getki() {
+	return _ki;
+}
+
+/**
+ * Method to get current derivative constant
+ * @return derivative constant
+ */
+float PID::getkd() {
+	return _kd;
+}

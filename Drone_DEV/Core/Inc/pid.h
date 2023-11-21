@@ -25,6 +25,13 @@ public:
 	void setDOM();
 	void setDOE();
 	float getOutput();
+	void setkp(float kp);
+	void setki(float ki);
+	void setkd(float kd);
+	float getkp();
+	float getki();
+	float getkd();
+
 
 
 private:
