@@ -294,7 +294,7 @@ void MPU9250::readGyroDataScaled(float *destination)
 
 }
 
-int8_t MPU9250::initMPU9250(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate)
+uint8_t MPU9250::initMPU9250(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate)
 {  uint8_t c;
     uint8_t init_count = 0;
 	 // Initialise MPU9250 device
@@ -312,12 +312,12 @@ int8_t MPU9250::initMPU9250(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate)
     }
     else
     {
-      return -1;
+      return clock_set_failed;
     }
 
     if(getMPU9250ID() != 0x70)
     {
-      return -2;
+      return incorrect_ID;
     }
 
     //enable accelerometer and gyroscope
@@ -329,7 +329,7 @@ int8_t MPU9250::initMPU9250(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate)
     } 
     else 
     {
-      return -3;
+      return accel_and_gyro_set_failed;
     }
 
 	 // Configure Gyroscope and Accelerometer
@@ -345,7 +345,7 @@ int8_t MPU9250::initMPU9250(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate)
     } 
     else
     {
-      return -4;
+      return accel_sensitivty_set_failed;
     }
 
     // Set gyroscope full scale range configuration
@@ -358,7 +358,7 @@ int8_t MPU9250::initMPU9250(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate)
     } 
     else
     {
-      return -5;
+      return gyro_sensitivty_set_failed;
     }
 
  // Set accelerometer sample rate configuration
@@ -370,7 +370,7 @@ int8_t MPU9250::initMPU9250(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate)
     } 
     else
     {
-      return -6;
+      return accel_filter_set_failed;
     }
 
  // Set gyro sample rate configuration
@@ -382,7 +382,7 @@ int8_t MPU9250::initMPU9250(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate)
     } 
     else
     {
-      return -7;
+      return gyro_filter_set_failed;
     }
 
 	 // Set sample rate = gyroscope output rate/(1 + SMPLRT_DIV)
@@ -395,7 +395,7 @@ int8_t MPU9250::initMPU9250(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate)
     }
     else
     {
-      return -8;
+      return sample_rate_set_failed;
     }
 	 // The accelerometer, gyroscope, and thermometer are set to 1 kHz sample rates,
 	 // but all these rates are further reduced by a factor of 5 to 200 Hz because of the SMPLRT_DIV setting
@@ -412,7 +412,7 @@ int8_t MPU9250::initMPU9250(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate)
     }
     else
     {
-      return -9;
+      return I2C_bypass_failed;
     }
 	  I2Cdev_writeByte(MPU9250_1_ADDRESS, INT_ENABLE, 0x01);  // Enable data ready (bit 0) interrupt
     I2Cdev_readByte(MPU9250_1_ADDRESS, INT_ENABLE, &c, I2CDEV_DEFAULT_READ_TIMEOUT);
@@ -423,10 +423,10 @@ int8_t MPU9250::initMPU9250(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate)
     }
     else
     {
-      return -10;
+      return data_interrupt_set_failed;
     }
 
-    return 1;
+    return ok;
 }
 
 

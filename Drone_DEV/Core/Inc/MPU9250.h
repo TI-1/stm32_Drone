@@ -205,6 +205,20 @@
 #define USER_YG_OFFSET -178
 #define USER_ZG_OFFSET -46
 
+typedef enum {
+	ok = 0,
+	clock_set_failed,
+	incorrect_ID,
+	accel_and_gyro_set_failed,
+	accel_sensitivty_set_failed,
+	gyro_sensitivty_set_failed,
+	accel_filter_set_failed,
+	gyro_filter_set_failed,
+	sample_rate_set_failed,
+	I2C_bypass_failed,
+	data_interrupt_set_failed
+}MPU9250_init_status;
+
 
 class MPU9250
 {
@@ -213,7 +227,7 @@ class MPU9250
 	  MPU9250();
 	  uint8_t getMPU9250ID();
 	  void resetMPU9250();
-	  int8_t initMPU9250 (uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate);
+	  uint8_t initMPU9250 (uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate);
 	  float getAres(uint8_t Ascale);
 	  float getGres(uint8_t Gscale);
 	  void calibrateMPU9250(float * dest1, float * dest2);
