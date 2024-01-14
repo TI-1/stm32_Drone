@@ -8,19 +8,22 @@
 #include "debug.h"
 #include "stdio.h"
 
+//TODO Create virtual class for IMU
 
 /**
  * IMU class constructor
  * @param calibration set calibration flag as true or false
  */
-IMU::IMU(bool calibration) {
+IMU::IMU(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate, bool calibration) {
+	initialise(Ascale, Gscale, sampleRate);
 	calibrate = true;
 }
 
 /**
  * IMU class default constructor
  */
-IMU::IMU() {
+IMU::IMU(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate) {
+	initialise(Ascale, Gscale, sampleRate);
 }
 
 /**
@@ -30,10 +33,9 @@ IMU::IMU() {
  * @param sampleRate Data sample rate
  * @return
  */
-int8_t IMU::initialise(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate) {
+uint8_t IMU::initialise(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate) {
 	float dest1[3];
 	float dest2[3];
-	uint8_t init_status;
 	init_status = initMPU9250(Ascale, Gscale, sampleRate);
 	if(calibrate){
 		calibrateMPU9250(dest1, dest2);
@@ -103,6 +105,10 @@ void IMU::readIMU() {
 //	Debug(printf("Now: %d\t previous: %d\t delta t: %f\r\n",Now,_lastUpdate,_deltat));
 	calculateMadgwickQuaternion();
 	_lastUpdate = Now;
+}
+
+bool IMU::checkStatus(){
+	return (getMPU9250ID() == MPU1);
 }
 
 bool IMU::dataReady() {
@@ -227,6 +233,11 @@ void IMU::calculateMadgwickQuaternion() {
 	_ypr[2] = (atan2(2.0f * (m_q_madg[0] * m_q_madg[1] + m_q_madg[2] * m_q_madg[3]), m_q_madg[0] * m_q_madg[0] - m_q_madg[1] * m_q_madg[1] - m_q_madg[2] * m_q_madg[2] + m_q_madg[3] * m_q_madg[3])) * 180.f/M_PI;
 }
 
+void IMU::debugGyro() {
+	printf("gyro_X:%f\tgyro_Y:%f\tgyro_Z:%f\r\n",_g_xyz[0],_g_xyz[1], _g_xyz[2]);
+}
 
-
+void IMU::debugYPR() {
+	printf("Yaw:%3.3f\tPitch:%3.3f\tRoll:%3.3f\r\n",_ypr[0],_ypr[1],_ypr[2]);
+}
 

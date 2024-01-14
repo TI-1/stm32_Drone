@@ -22,9 +22,10 @@ enum axis {
 class IMU : private MPU9250
 {
 	public:
-		IMU(bool calibration);
-		IMU();
-		int8_t initialise(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate);
+		IMU(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate, bool calibration);
+		IMU(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate);
+		uint8_t initialise(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate);
+		uint8_t init_status = ok;
 		float Yaw();
 		float Pitch();
 		float Roll();
@@ -32,6 +33,9 @@ class IMU : private MPU9250
 		float Gyro(axis axis);
 		void readIMU();
 		bool dataReady();
+		bool checkStatus();
+		void debugGyro();
+		void debugYPR();
 
 
 	private:
