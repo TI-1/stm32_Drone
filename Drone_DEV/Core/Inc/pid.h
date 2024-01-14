@@ -9,6 +9,8 @@
 #define INC_PID_H_
 
 #include "stdint.h"
+#include "usart.h"
+#include <stdio.h>
 
 enum derivative
 {
@@ -31,10 +33,13 @@ public:
 	float getkp();
 	float getki();
 	float getkd();
+	void debugPID(const char*);
 
 
 
 private:
+	float _setpoint;
+	float _input;
 	float _kp;
 	float _ki;
 	float _kd;

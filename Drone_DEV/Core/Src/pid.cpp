@@ -25,6 +25,8 @@ PID::PID(float kp, float ki, float kd, float imax):_kp(kp),_ki(ki),_kd(kd),_imax
  * @param input Actual value measured from sensors
  */
 void PID::controllerUpdate(float setpoint, float input) {
+	_setpoint = setpoint;
+	_input = input;
 	float dt = (HAL_GetTick()-_lastCompute)/1000.0f;
 	float error = setpoint - input;
 	_integrator += _ki * error * dt;
@@ -45,6 +47,7 @@ void PID::controllerUpdate(float setpoint, float input) {
 
 	_lastError = error;
 	_lastInput = input;
+	_lastCompute = HAL_GetTick();
 
 }
 
@@ -124,4 +127,8 @@ float PID::getki() {
  */
 float PID::getkd() {
 	return _kd;
+}
+
+void PID::debugPID(const char *axis) {
+	printf("%s-set:%3.3f\tinput:%3.3f\terror:%3.3f\tout:%3.3f\r\n",axis,_setpoint, _input, _setpoint - _input, _controllerOutput);
 }
