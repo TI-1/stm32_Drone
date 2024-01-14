@@ -10,6 +10,8 @@
 
 #include "stdint.h"
 #include "stm32f1xx.h"
+#include "usart.h"
+#include <stdio.h>
 
 enum motorPosition{
 	FrontLeft,
@@ -31,6 +33,7 @@ public:
 	void callibrate();
 	void setMinDutyCycle(float dutyCycle);
 	void setMaxDutyCycle(float dutyCycle);
+	void DebugMotors();
 
 
 private:

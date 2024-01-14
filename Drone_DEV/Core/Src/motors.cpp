@@ -7,6 +7,7 @@
 
 #include "motors.h"
 
+
 /**
  * Constructor for Motor class
  * @param pwm_timer set which timer motors use
@@ -96,11 +97,15 @@ void Motors::setMaxDutyCycle(float dutyCycle) {
 	_maxDutyCycle = dutyCycle;
 }
 
+void Motors::DebugMotors() {
+	printf("m1_out:%d\tm2_out:%d\tm3_out:%d\tm4_out:%d\r\n",getOutput(FrontLeft),getOutput(FrontRight),getOutput(RearLeft),getOutput(RearRight));
+}
+
 /**
  * Zero motor outputs
  */
 void Motors::zeroOutput() {
-	for (uint8_t i = 0; i < sizeof(_output); i++){
+	for (uint8_t i = 0; i < sizeof(_output)/  sizeof(_output[0]); i++){
 	        _output[i] = _minRCInput ;
 	    }
 }
