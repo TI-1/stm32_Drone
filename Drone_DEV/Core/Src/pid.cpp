@@ -28,6 +28,7 @@ void PID::controllerUpdate(float setpoint, float input) {
 	_setpoint = setpoint;
 	_input = input;
 	float dt = (HAL_GetTick()-_lastCompute)/1000.0f;
+	_dt = dt;
 	float error = setpoint - input;
 	_integrator += _ki * error * dt;
 	_integrator = ((_integrator)<(-_imax)?(-_imax):((_integrator)>(_imax)?(_imax):(_integrator)));
@@ -37,7 +38,6 @@ void PID::controllerUpdate(float setpoint, float input) {
 	if (derivative_mode == doe){
 		float d_out = _kd * (error - _lastError) / dt;
 		_controllerOutput = p_out + i_out + d_out;
-
 		}
 
 	else {
@@ -130,5 +130,5 @@ float PID::getkd() {
 }
 
 void PID::debugPID(const char *axis) {
-	printf("%s-set:%3.3f\tinput:%3.3f\terror:%3.3f\tout:%3.3f\r\n",axis,_setpoint, _input, _setpoint - _input, _controllerOutput);
+	printf("%s-set:%3.3f\tinput:%3.3f\terror:%3.3f\tout:%3.3f\tdt:%3.3f\r\n",axis,_setpoint, _input, _setpoint - _input, _controllerOutput,_dt);
 }

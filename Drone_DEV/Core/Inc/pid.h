@@ -48,7 +48,7 @@ private:
 	float _lastError=0.0;
 	float _lastInput = 0.0;
 	uint32_t _lastCompute;
-	float _delta = 0.0;
+	float _dt = 0.0;
 	float _controllerOutput = 0.0;
 	derivative derivative_mode = doe;
 
