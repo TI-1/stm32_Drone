@@ -174,15 +174,15 @@
 #define GYRO_DLPF_5    0x06
 
 // Set initial input parameters
-#define  AFS_2G  0
-#define  AFS_4G  1
-#define  AFS_8G  2
-#define  AFS_16G 3
-
-#define  GFS_250DPS  0
-#define  GFS_500DPS  1
-#define  GFS_1000DPS 2
-#define  GFS_2000DPS 3
+//#define  AFS_2G  0
+//#define  AFS_4G  1
+//#define  AFS_8G  2
+//#define  AFS_16G 3
+//
+//#define  GFS_250DPS  0
+//#define  GFS_500DPS  1
+//#define  GFS_1000DPS 2
+//#define  GFS_2000DPS 3
 
 #define  MFS_14BITS  0 // 0.6 mG per LSB
 #define  MFS_16BITS  1    // 0.15 mG per LSB

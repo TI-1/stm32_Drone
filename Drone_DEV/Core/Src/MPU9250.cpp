@@ -295,10 +295,14 @@ void MPU9250::readGyroDataScaled(float *destination)
 }
 
 uint8_t MPU9250::initMPU9250(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate)
-{  uint8_t c;
-    uint8_t init_count = 0;
+{  	uint8_t c;
 	 // Initialise MPU9250 device
 	 // wake up device
+    if(getMPU9250ID() != 0x70)
+        {
+          return incorrect_ID;
+        }
+
 	I2Cdev_writeByte(MPU9250_1_ADDRESS, PWR_MGMT_1, 0x00);// Clear sleep mode bit (6), enable all sensors
 	HAL_Delay(100); // Delay 100 ms for PLL to get established on x-axis gyro; should check for PLL ready interrupt
 
@@ -307,17 +311,10 @@ uint8_t MPU9250::initMPU9250(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate)
     I2Cdev_readByte(MPU9250_1_ADDRESS,PWR_MGMT_1, &c, I2CDEV_DEFAULT_READ_TIMEOUT);
     if(c == 0x01){
       Debug(printf("Clock source set.\r\n"));
-
-      init_count++;
     }
     else
     {
       return clock_set_failed;
-    }
-
-    if(getMPU9250ID() != 0x70)
-    {
-      return incorrect_ID;
     }
 
     //enable accelerometer and gyroscope
@@ -325,7 +322,6 @@ uint8_t MPU9250::initMPU9250(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate)
     I2Cdev_readByte(MPU9250_1_ADDRESS, PWR_MGMT_2, &c, I2CDEV_DEFAULT_READ_TIMEOUT);
     if(c == 0x00){
       Debug(printf("Accelerometer and Gyroscope Enabled.\r\n"));
-      init_count++;
     } 
     else 
     {
@@ -341,7 +337,6 @@ uint8_t MPU9250::initMPU9250(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate)
     if(c == Ascale){
       getAres(Ascale);
       Debug(printf("Accelerometer sensitivity set.\r\n"));
-      init_count++;
     } 
     else
     {
@@ -354,7 +349,6 @@ uint8_t MPU9250::initMPU9250(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate)
     if(c == Gscale){
       getGres(Gscale);
       Debug(printf("Gyro sensitivity set.\r\n"));
-      init_count++;
     } 
     else
     {
@@ -366,7 +360,6 @@ uint8_t MPU9250::initMPU9250(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate)
     I2Cdev_readByte(MPU9250_1_ADDRESS, ACCEL_CONFIG2, &c, I2CDEV_DEFAULT_READ_TIMEOUT);
     if(c == ACCEL_DLPF_41){
       Debug(printf("Acceleration filter set.\r\n"));
-      init_count++;
     } 
     else
     {
@@ -378,7 +371,6 @@ uint8_t MPU9250::initMPU9250(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate)
     I2Cdev_readByte(MPU9250_1_ADDRESS, CONFIG, &c, I2CDEV_DEFAULT_READ_TIMEOUT);
     if(c == GYRO_DLPF_41){
       Debug(printf("Gyro filter set.\r\n"));
-      init_count++;
     } 
     else
     {
@@ -391,7 +383,6 @@ uint8_t MPU9250::initMPU9250(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate)
      if (c == sampleRate)
     {
       Debug(printf("Sample Rate set.\r\n"));
-      init_count++;
     }
     else
     {
@@ -408,7 +399,6 @@ uint8_t MPU9250::initMPU9250(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate)
      if (c == 0x22)
     {
       Debug(printf("I2C Bypass Enabled.\r\n"));
-      init_count++;
     }
     else
     {
@@ -419,7 +409,6 @@ uint8_t MPU9250::initMPU9250(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate)
      if (c == 0x01)
     {
       Debug(printf("Data Ready Interrupt Enabled.\r\n"));
-      init_count++;
     }
     else
     {
