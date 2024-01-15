@@ -24,7 +24,6 @@ class IMU : private MPU9250
 	public:
 		IMU(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate, bool calibration);
 		IMU(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate);
-		uint8_t initialise(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate);
 		uint8_t init_status = ok;
 		float Yaw();
 		float Pitch();
@@ -39,6 +38,7 @@ class IMU : private MPU9250
 
 
 	private:
+		uint8_t initialise(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate);
 		bool calibrate = false;
 		float _ypr[3];
 		float _a_xyz[3];

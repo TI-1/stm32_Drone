@@ -14,15 +14,15 @@
  * IMU class constructor
  * @param calibration set calibration flag as true or false
  */
-IMU::IMU(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate, bool calibration) {
+IMU::IMU(uint8_t Ascale = ACCEL_FS_SEL_4G, uint8_t Gscale = GYRO_FS_SEL_1000DPS, uint8_t sampleRate = 4, bool calibration = false) {
 	initialise(Ascale, Gscale, sampleRate);
-	calibrate = true;
+	calibrate = calibration;
 }
 
 /**
  * IMU class default constructor
  */
-IMU::IMU(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate) {
+IMU::IMU(uint8_t Ascale = ACCEL_FS_SEL_4G, uint8_t Gscale = GYRO_FS_SEL_1000DPS, uint8_t sampleRate = 4) {
 	initialise(Ascale, Gscale, sampleRate);
 }
 
@@ -102,7 +102,6 @@ void IMU::readIMU() {
 	readGyroDataScaled(_g_xyz);
 	Now = HAL_GetTick();
 	_deltat = static_cast<float>(((Now - _lastUpdate) / 1000.0f));
-//	Debug(printf("Now: %d\t previous: %d\t delta t: %f\r\n",Now,_lastUpdate,_deltat));
 	calculateMadgwickQuaternion();
 	_lastUpdate = Now;
 }
