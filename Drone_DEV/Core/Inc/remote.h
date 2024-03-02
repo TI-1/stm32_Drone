@@ -19,7 +19,8 @@ enum remote{
 	Roll,
 	Pitch,
 	Throttle,
-	Yaw
+	Yaw,
+	Arm = 5
 };
 
 
@@ -28,6 +29,8 @@ class Remote
     public:
         Remote(UART_HandleTypeDef* huart);
         int16_t getRemoteData(remote rc);
+        void debugRemote();
+        bool signalLost = false;
 
 
 
@@ -37,6 +40,7 @@ class Remote
         uint8_t m_uart_rx_buffer[IBUS_LENGTH] = {0};
         uint16_t _ibus_data[IBUS_USER_CHANNELS];
         UART_HandleTypeDef* m_huart;
+        int8_t _nullcount = 0;
 
     private:
         bool ibusIsValid();

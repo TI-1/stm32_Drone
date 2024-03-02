@@ -1,4 +1,5 @@
 #include "remote.h"
+#include "stdio.h"
 
 
 Remote::Remote(UART_HandleTypeDef* huart):m_huart(huart)
@@ -17,10 +18,18 @@ bool Remote::ibusRead(){
 
 int16_t Remote::getRemoteData(remote rc) {
 	if (ibusRead()){
+		if (_ibus_data[Arm]!= 2000 || _ibus_data[Arm]!= 1000){
+			signalLost = true;
+		}
+		_nullcount = 0;
 		return _ibus_data[rc];
 	}
 	else {
-		return -400;  //TODO may need to change error number
+		_nullcount += 1; //TODO may need to change error number
+		if (_nullcount >= 10){
+			signalLost = true;
+		}
+		return _ibus_data[rc];
 	}
 }
 
@@ -47,9 +56,10 @@ bool Remote::ibusChecksum(){
 void Remote::ibusUpdate(){
 	for(int ch_idx=0, buf_idx = 2;ch_idx < IBUS_USER_CHANNELS; ch_idx++, buf_idx +=2){
 		 _ibus_data[ch_idx] = m_uart_rx_buffer[buf_idx + 1] << 8 | m_uart_rx_buffer[buf_idx];
-
-
 	}
 
 }
 
+void Remote::debugRemote() {
+	printf("Throttle:%d\tYaw:%d\tPitch:%d\tRoll:%d\tArm:%d\r\n",getRemoteData(Throttle), getRemoteData(Yaw),getRemoteData(Pitch),getRemoteData(Roll),getRemoteData(Arm));
+}
