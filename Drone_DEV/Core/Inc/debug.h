@@ -9,6 +9,10 @@
 #define INC_DEBUG_H_
 
 #include "usart.h"
+#include <stdio.h>
+#include "gpio.h"
+
+#define MYDEBUG
 
 #ifdef MYDEBUG
 #define Debug(x) x
@@ -16,6 +20,17 @@
 #define Debug(x)
 #endif
 
+typedef enum {
+	GYRO_FREEZE = 0,
+	EXTREME_ANGLE,
+	IMU_INIT,
+	WATCHDOG_RESET
+}emergency_stop;
 
+
+
+void indicateEmergency(const char *reason);
+
+void indicateEmergency(emergency_stop reason);
 
 #endif /* INC_DEBUG_H_ */
