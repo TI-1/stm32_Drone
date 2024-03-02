@@ -40,12 +40,12 @@ class IMU : private MPU9250
 	private:
 		uint8_t initialise(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate);
 		bool calibrate = false;
-		float _ypr[3];
+		float _ypr[3] = {0,0,0};
 		float _a_xyz[3];
 		float _g_xyz[3];
 		float m_q_madg[4] = {1.0f, 0.0f, 0.0f, 0.0f};
 		float _deltat = 0.0f;
-		uint32_t _lastUpdate = 0;
+		uint32_t _lastUpdate = HAL_GetTick();
 		float _GyroMeasError = M_PI * (60.0f / 180.0f);     // gyroscope measurement error in rads/s (start at 60 deg/s), then reduce after ~10 s to 3
 		float _beta = sqrt(3.0f / 4.0f) * _GyroMeasError;  // compute beta
 		float _GyroMeasDrift = M_PI * (1.0f / 180.0f);      // gyroscope measurement drift in rad/s/s (start at 0.0 deg/s/s)

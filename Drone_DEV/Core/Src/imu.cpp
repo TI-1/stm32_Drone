@@ -237,6 +237,6 @@ void IMU::debugGyro() {
 }
 
 void IMU::debugYPR() {
-	printf("Yaw:%3.3f\tPitch:%3.3f\tRoll:%3.3f\r\n",_ypr[0],_ypr[1],_ypr[2]);
+	printf("Yaw:%3.3f\tPitch:%3.3f\tRoll:%3.3f\tDelta:%3.3f\r\n",_ypr[0],_ypr[1],_ypr[2],_deltat);
 }
 
