@@ -192,7 +192,7 @@
 
 // Define I2C addresses of the two MPU9250
 #define MPU9250_1_ADDRESS 0x68   // Device address when ADO = 0
-#define MPU1              0x68
+#define MPU1              0x70
 #define MPU9250_2_ADDRESS 0x69   // Device address when ADO = 1
 #define MPU2              0x69
 #define AK8963_ADDRESS    0x0C   //  Address of magnetometer
