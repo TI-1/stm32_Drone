@@ -8,7 +8,7 @@
 
 
 Telemetry* Telemetry::_telemetry = nullptr;
-UART_HandleTypeDef* Telemetry::defaultUART = nullptr;
+UART_HandleTypeDef* Telemetry::defaultUART = &huart2;
 
 Telemetry::Telemetry():huart(*defaultUART) {}
 
@@ -22,7 +22,7 @@ Telemetry* Telemetry::getInstance() {
 
 
 void Telemetry::sendData(uint8_t databuf[]) {
-	HAL_UART_Transmit(defaultUART, databuf, 8, HAL_MAX_DELAY);
+	HAL_UART_Transmit(defaultUART, databuf, 8, 1000);
 }
 
 
