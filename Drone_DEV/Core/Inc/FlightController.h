@@ -57,6 +57,8 @@ public:
 	FlightController(IMU *imu, Motors *motors, Remote *remote);
 	FlightController(IMU *imu, Motors *motors, Remote *remote, flight_mode Fm);
 	FlightController();
+	FlightController(const FlightController& obj) = delete;
+	FlightController& operator=(const FlightController& obj) = delete;
 	void setPid(PID *pid, float kp, float ki, float kd, float imax);
 	void initialise();
 	void loop();

@@ -22,6 +22,8 @@ class PID {
 
 public:
 	PID(float kp, float ki, float kd, float imax);
+	PID(const PID& obj) = delete;
+	PID& operator=(const PID& obj) = delete;
 	void controllerUpdate(float setpoint, float input);
 	void reset_i();
 	void setDOM();

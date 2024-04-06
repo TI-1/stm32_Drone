@@ -27,6 +27,8 @@ enum state{
 class Motors {
 public:
 	Motors(TIM_HandleTypeDef* pwm_timer);
+	Motors(const Motors& obj) = delete;
+	Motors& operator=(const Motors& obj) = delete;
 	void setOutput(motorPosition pos, uint16_t output);
 	uint16_t getOutput(motorPosition pos);
 	void command(state state);

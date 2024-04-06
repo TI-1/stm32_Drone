@@ -28,6 +28,8 @@ class Remote
 {
     public:
         Remote(UART_HandleTypeDef* huart);
+        Remote(const Remote& obj) = delete;
+		Remote& operator=(const Remote& obj) = delete;
         int16_t getRemoteData(remote rc);
         void debugRemote();
         bool signalLost = false;
