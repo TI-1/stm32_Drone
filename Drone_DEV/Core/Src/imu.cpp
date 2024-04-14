@@ -16,7 +16,6 @@
  */
 IMU::IMU(uint8_t Ascale = ACCEL_FS_SEL_4G, uint8_t Gscale = GYRO_FS_SEL_1000DPS, uint8_t sampleRate = 4, bool calibration = false) {
 	initialise(Ascale, Gscale, sampleRate);
-	calibrate = calibration;
 }
 
 /**
@@ -34,21 +33,14 @@ IMU::IMU(uint8_t Ascale = ACCEL_FS_SEL_4G, uint8_t Gscale = GYRO_FS_SEL_1000DPS,
  * @return
  */
 uint8_t IMU::initialise(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate) {
-	float dest1[3];
-	float dest2[3];
 	init_status = initMPU9250(Ascale, Gscale, sampleRate);
-	if(calibrate){
-		calibrateMPU9250(dest1, dest2);
-	}
-	else{
-		//TODO possibly add check to make sure offsets set correctly
-		 setXAccelOffset(USER_XA_OFFSET);
-		 setYAccelOffset(USER_YA_OFFSET);
-		 setZAccelOffset(USER_ZA_OFFSET);
-		 setXGyroOffset(USER_XG_OFFSET);
-		 setYGyroOffset(USER_YG_OFFSET);
-		 setZGyroOffset(USER_ZG_OFFSET);
-	}
+	//TODO possibly add check to make sure offsets set correctly
+	 setXAccelOffset(USER_XA_OFFSET);
+	 setYAccelOffset(USER_YA_OFFSET);
+	 setZAccelOffset(USER_ZA_OFFSET);
+	 setXGyroOffset(USER_XG_OFFSET);
+	 setYGyroOffset(USER_YG_OFFSET);
+	 setZGyroOffset(USER_ZG_OFFSET);
 	return init_status;
 }
 
@@ -240,3 +232,8 @@ void IMU::debugYPR() {
 	printf("Yaw:%3.3f\tPitch:%3.3f\tRoll:%3.3f\tDelta:%3.3f\r\n",_ypr[0],_ypr[1],_ypr[2],_deltat);
 }
 
+void IMU::calibrateImu() {
+	float dest1[3];
+	float dest2[3];
+	calibrateMPU9250(dest1, dest2);
+}

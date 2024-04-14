@@ -22,7 +22,7 @@ enum axis {
 class IMU : private MPU9250
 {
 	public:
-		IMU(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate, bool calibration);
+		IMU(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate);
 		IMU(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate);
 		IMU(const IMU& obj) = delete;
 		IMU& operator=(const IMU& obj) = delete;
@@ -32,6 +32,7 @@ class IMU : private MPU9250
 		float Roll();
 		float Accel(axis axis);
 		float Gyro(axis axis);
+		void calibrateImu();
 		void readIMU();
 		bool dataReady();
 		bool checkStatus();
@@ -41,7 +42,6 @@ class IMU : private MPU9250
 
 	private:
 		uint8_t initialise(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate);
-		bool calibrate = false;
 		float _ypr[3] = {0,0,0};
 		float _a_xyz[3];
 		float _g_xyz[3];
