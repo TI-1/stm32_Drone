@@ -220,11 +220,22 @@ typedef enum {
 }MPU9250_init_status;
 
 
+#define MYDEBUG
+
+#ifdef MYDEBUG
+#define Debug(x) x
+#else
+#define Debug(x)
+#endif
+
 class MPU9250
 {
   public: 
-	  MPU9250(uint8_t intPin);
-	  MPU9250();
+	  MPU9250(uint8_t intPin,I2C_HandleTypeDef * hi2c);
+	  MPU9250(I2C_HandleTypeDef * hi2c);
+	  MPU9250(MPU9250& t) = delete;
+	  MPU9250& operator=(const MPU9250& t) = delete;
+
 	  uint8_t getMPU9250ID();
 	  void resetMPU9250();
 	  uint8_t initMPU9250 (uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate);
@@ -242,12 +253,14 @@ class MPU9250
 	  void gyromagWake(uint8_t Mmode);
 	  void accelWakeOnMotion();
 	  bool checkWakeOnMotion();
+
 	  int16_t getXAccelOffset();
 	  int16_t getYAccelOffset();
 	  int16_t getZAccelOffset();
 	  void setXAccelOffset(int16_t offset);
 	  void setYAccelOffset(int16_t offset);
 	  void setZAccelOffset(int16_t offset);
+
 	  int16_t getXGyroOffset();
 	  int16_t getYGyroOffset();
 	  int16_t getZGyroOffset();
@@ -261,12 +274,14 @@ class MPU9250
 	  
 
   private:
+	  I2C _i2c;
 	  uint8_t _intPin = 0;
 	  /** The accelerometer scale factor*/
 	  float _aRes = 0;
 	  /** The gyroscope scale factor*/
 	  float _gRes = 0;
 	  uint8_t _Mmode = 0;
+
 };
 
 #endif
