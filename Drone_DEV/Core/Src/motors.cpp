@@ -53,6 +53,7 @@ void Motors::command(state state) {
 	}
 }
 
+//TODO figure out motor calibration
 void Motors::callibrate() {
 }
 
