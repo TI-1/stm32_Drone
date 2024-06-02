@@ -12,7 +12,9 @@
 /**
  * IMU class default constructor
  */
-IMU::IMU(uint8_t Ascale = ACCEL_FS_SEL_4G, uint8_t Gscale = GYRO_FS_SEL_1000DPS, uint8_t sampleRate = 4, I2C_HandleTypeDef * hi2c = nullptr):_mpu(hi2c) {
+IMU::IMU(uint8_t Ascale = ACCEL_FS_SEL_4G, uint8_t Gscale = GYRO_FS_SEL_1000DPS,
+		uint8_t sampleRate = 4, I2C_HandleTypeDef *hi2c = nullptr) :
+		_mpu(hi2c) {
 	initialise(Ascale, Gscale, sampleRate);
 }
 
@@ -25,12 +27,12 @@ IMU::IMU(uint8_t Ascale = ACCEL_FS_SEL_4G, uint8_t Gscale = GYRO_FS_SEL_1000DPS,
 void IMU::initialise(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate) {
 	init_status = _mpu.initMPU9250(Ascale, Gscale, sampleRate);
 	//TODO possibly add check to make sure offsets set correctly
-	 _mpu.setXAccelOffset(USER_XA_OFFSET);
-	 _mpu.setYAccelOffset(USER_YA_OFFSET);
-	 _mpu.setZAccelOffset(USER_ZA_OFFSET);
-	 _mpu.setXGyroOffset(USER_XG_OFFSET);
-	 _mpu.setYGyroOffset(USER_YG_OFFSET);
-	 _mpu.setZGyroOffset(USER_ZG_OFFSET);
+	_mpu.setXAccelOffset(USER_XA_OFFSET);
+	_mpu.setYAccelOffset(USER_YA_OFFSET);
+	_mpu.setZAccelOffset(USER_ZA_OFFSET);
+	_mpu.setXGyroOffset(USER_XG_OFFSET);
+	_mpu.setYGyroOffset(USER_YG_OFFSET);
+	_mpu.setZGyroOffset(USER_ZG_OFFSET);
 }
 
 /**
@@ -63,18 +65,18 @@ float IMU::Roll() {
  * @return Acceleration value
  */
 float IMU::Accel(axis axis) {
-	switch (axis){
-		case X:
-			return _a_xyz[0];
-			break;
-		case Y:
-			return _a_xyz[1];
-			break;
-		case Z:
-			return _a_xyz[2];
-			break;
-		default:
-			return 0.0f;
+	switch (axis) {
+	case X:
+		return _a_xyz[0];
+		break;
+	case Y:
+		return _a_xyz[1];
+		break;
+	case Z:
+		return _a_xyz[2];
+		break;
+	default:
+		return 0.0f;
 	}
 }
 
@@ -84,18 +86,18 @@ float IMU::Accel(axis axis) {
  * @return Gyro rate value
  */
 float IMU::Gyro(axis axis) {
-	switch (axis){
-		case X:
-			return _g_xyz[0];
-			break;
-		case Y:
-			return _g_xyz[1];
-			break;
-		case Z:
-			return _g_xyz[2];
-			break;
-		default:
-			return 0.0f;
+	switch (axis) {
+	case X:
+		return _g_xyz[0];
+		break;
+	case Y:
+		return _g_xyz[1];
+		break;
+	case Z:
+		return _g_xyz[2];
+		break;
+	default:
+		return 0.0f;
 	}
 }
 
@@ -116,7 +118,7 @@ void IMU::readIMU() {
  * Check if IMU can be identified
  * @return true if IMU connected
  */
-bool IMU::checkStatus(){
+bool IMU::checkStatus() {
 	return (_mpu.getMPU9250ID() == MPU1);
 }
 
@@ -133,11 +135,11 @@ bool IMU::dataReady() {
  */
 void IMU::calculateMadgwickQuaternion() {
 	float ax = _a_xyz[0];
-    float ay = _a_xyz[1];
-    float az = _a_xyz[2];
-	float gx = _g_xyz[0]*M_PI/180.0f;
-	float gy = _g_xyz[1]*M_PI/180.0f;
-	float gz = _g_xyz[2]*M_PI/180.0f;
+	float ay = _a_xyz[1];
+	float az = _a_xyz[2];
+	float gx = _g_xyz[0] * M_PI / 180.0f;
+	float gy = _g_xyz[1] * M_PI / 180.0f;
+	float gz = _g_xyz[2] * M_PI / 180.0f;
 	float q1 = m_q_madg[0];
 	float q2 = m_q_madg[1];
 	float q3 = m_q_madg[2];
@@ -145,7 +147,7 @@ void IMU::calculateMadgwickQuaternion() {
 	float norm;                                               // vector norm
 	float f1;
 	float f2;
-	float f3;                                         // objective funcyion elements
+	float f3;                                     // objective funcyion elements
 	float J_11or24;
 	float J_12or23;
 	float J_13or22;
@@ -181,8 +183,9 @@ void IMU::calculateMadgwickQuaternion() {
 
 	// Normalise accelerometer measurement
 	norm = sqrt(ax * ax + ay * ay + az * az);
-	if (norm <= 0.0f) return; // handle NaN
-	norm = 1.0f/norm;
+	if (norm <= 0.0f)
+		return; // handle NaN
+	norm = 1.0f / norm;
 	ax *= norm;
 	ay *= norm;
 	az *= norm;
@@ -201,11 +204,13 @@ void IMU::calculateMadgwickQuaternion() {
 	// Compute the gradient (matrix multiplication)
 	hatDot1 = J_14or21 * f2 - J_11or24 * f1;
 	hatDot2 = J_12or23 * f1 + J_13or22 * f2 - J_32 * f3;
-	hatDot3 = J_12or23 * f2 - J_33 *f3 - J_13or22 * f1;
+	hatDot3 = J_12or23 * f2 - J_33 * f3 - J_13or22 * f1;
 	hatDot4 = J_14or21 * f1 + J_11or24 * f2;
 
 	// Normalize the gradient
-	norm = sqrt(hatDot1 * hatDot1 + hatDot2 * hatDot2 + hatDot3 * hatDot3 + hatDot4 * hatDot4);
+	norm = sqrt(
+			hatDot1 * hatDot1 + hatDot2 * hatDot2 + hatDot3 * hatDot3
+					+ hatDot4 * hatDot4);
 	hatDot1 /= norm;
 	hatDot2 /= norm;
 	hatDot3 /= norm;
@@ -226,41 +231,53 @@ void IMU::calculateMadgwickQuaternion() {
 
 	// Compute the quaternion derivative
 	qDot1 = -_halfq2 * gx - _halfq3 * gy - _halfq4 * gz;
-	qDot2 =  _halfq1 * gx + _halfq3 * gz - _halfq4 * gy;
-	qDot3 =  _halfq1 * gy - _halfq2 * gz + _halfq4 * gx;
-	qDot4 =  _halfq1 * gz + _halfq2 * gy - _halfq3 * gx;
+	qDot2 = _halfq1 * gx + _halfq3 * gz - _halfq4 * gy;
+	qDot3 = _halfq1 * gy - _halfq2 * gz + _halfq4 * gx;
+	qDot4 = _halfq1 * gz + _halfq2 * gy - _halfq3 * gx;
 
 	// Compute then integrate estimated quaternion derivative
-	q1 += (qDot1 -(_beta * hatDot1)) * _deltat;
-	q2 += (qDot2 -(_beta * hatDot2)) * _deltat;
-	q3 += (qDot3 -(_beta * hatDot3)) * _deltat;
-	q4 += (qDot4 -(_beta * hatDot4)) * _deltat;
+	q1 += (qDot1 - (_beta * hatDot1)) * _deltat;
+	q2 += (qDot2 - (_beta * hatDot2)) * _deltat;
+	q3 += (qDot3 - (_beta * hatDot3)) * _deltat;
+	q4 += (qDot4 - (_beta * hatDot4)) * _deltat;
 
 	// Normalize the quaternion
-	norm = sqrt(q1 * q1 + q2 * q2 + q3 * q3 + q4 * q4);    // normalise quaternion
-	norm = 1.0f/norm;
+	norm = sqrt(q1 * q1 + q2 * q2 + q3 * q3 + q4 * q4);  // normalise quaternion
+	norm = 1.0f / norm;
 	m_q_madg[0] = q1 * norm;
 	m_q_madg[1] = q2 * norm;
 	m_q_madg[2] = q3 * norm;
 	m_q_madg[3] = q4 * norm;
 
-	_ypr[0] = (atan2(2.0f * (m_q_madg[1] * m_q_madg[2] + m_q_madg[0] * m_q_madg[3]), m_q_madg[0] * m_q_madg[0] + m_q_madg[1] * m_q_madg[1] - m_q_madg[2] * m_q_madg[2] - m_q_madg[3] * m_q_madg[3])) * 180.f/M_PI;
-	_ypr[1] = (-asin(2.0f * (m_q_madg[1] * m_q_madg[3] - m_q_madg[0] * m_q_madg[2]))) * 180.f/M_PI;
-	_ypr[2] = (atan2(2.0f * (m_q_madg[0] * m_q_madg[1] + m_q_madg[2] * m_q_madg[3]), m_q_madg[0] * m_q_madg[0] - m_q_madg[1] * m_q_madg[1] - m_q_madg[2] * m_q_madg[2] + m_q_madg[3] * m_q_madg[3])) * 180.f/M_PI;
+	_ypr[0] = (atan2(
+			2.0f * (m_q_madg[1] * m_q_madg[2] + m_q_madg[0] * m_q_madg[3]),
+			m_q_madg[0] * m_q_madg[0] + m_q_madg[1] * m_q_madg[1]
+					- m_q_madg[2] * m_q_madg[2] - m_q_madg[3] * m_q_madg[3]))
+			* 180.f / M_PI;
+	_ypr[1] = (-asin(
+			2.0f * (m_q_madg[1] * m_q_madg[3] - m_q_madg[0] * m_q_madg[2])))
+			* 180.f / M_PI;
+	_ypr[2] = (atan2(
+			2.0f * (m_q_madg[0] * m_q_madg[1] + m_q_madg[2] * m_q_madg[3]),
+			m_q_madg[0] * m_q_madg[0] - m_q_madg[1] * m_q_madg[1]
+					- m_q_madg[2] * m_q_madg[2] + m_q_madg[3] * m_q_madg[3]))
+			* 180.f / M_PI;
 }
 
 /**
  * Debug Gyro readings
  */
 void IMU::debugGyro() {
-	printf("gyro_X:%f\tgyro_Y:%f\tgyro_Z:%f\r\n",_g_xyz[0],_g_xyz[1], _g_xyz[2]);
+	printf("gyro_X:%f\tgyro_Y:%f\tgyro_Z:%f\r\n", _g_xyz[0], _g_xyz[1],
+			_g_xyz[2]);
 }
 
 /**
  * Debug Angle readings
  */
 void IMU::debugYPR() {
-	printf("Yaw:%3.3f\tPitch:%3.3f\tRoll:%3.3f\tDelta:%3.3f\r\n",_ypr[0],_ypr[1],_ypr[2],_deltat);
+	printf("Yaw:%3.3f\tPitch:%3.3f\tRoll:%3.3f\tDelta:%3.3f\r\n", _ypr[0],
+			_ypr[1], _ypr[2], _deltat);
 }
 
 /**

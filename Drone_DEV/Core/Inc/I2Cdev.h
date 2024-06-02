@@ -7,34 +7,34 @@
 //      2015-06-06 - ported to STM32 HAL library from Arduino code
 
 /* ============================================
-I2Cdev device library code is placed under the MIT license
-Copyright (c) 2013 Jeff Rowberg
+ I2Cdev device library code is placed under the MIT license
+ Copyright (c) 2013 Jeff Rowberg
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
+ The above copyright notice and this permission notice shall be included in
+ all copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
-===============================================
-*/
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ THE SOFTWARE.
+ ===============================================
+ */
 
 #ifndef _I2CDEV_H_
 #define _I2CDEV_H_
 
 #ifdef __cplusplus
-extern "C"{
+extern "C" {
 #endif
 
 #include <stdint.h>
@@ -51,44 +51,56 @@ extern "C"{
 #define true 1
 #define false 0
 
-
 // 1000ms default read timeout (modify with "I2Cdev::readTimeout = [ms];")
 #define I2CDEVLIB_WIRE_BUFFER_LENGTH 32
 #define I2CDEV_DEFAULT_READ_TIMEOUT     1000
 
-class I2C
-{
+class I2C {
 public:
-	I2C(I2C_HandleTypeDef * hi2c);
-	I2C(I2C& t) = delete;
-	I2C& operator=(const I2C& t) = delete;
-	~I2C(){
+	I2C(I2C_HandleTypeDef *hi2c);
+	I2C(I2C &t) = delete;
+	I2C& operator=(const I2C &t) = delete;
+	~I2C() {
 		I2Cdev_hi2c = nullptr;
 	}
 
-	uint8_t I2Cdev_readBit(uint8_t devAddr, uint8_t regAddr, uint8_t bitNum, uint8_t *data, uint16_t timeout);
-	uint8_t I2Cdev_readBitW(uint8_t devAddr, uint8_t regAddr, uint8_t bitNum, uint16_t *data, uint16_t timeout);
-	uint8_t I2Cdev_readBits(uint8_t devAddr, uint8_t regAddr, uint8_t bitStart, uint8_t length, uint8_t *data, uint16_t timeout);
-	uint8_t I2Cdev_readBitsW(uint8_t devAddr, uint8_t regAddr, uint8_t bitStart, uint8_t length, uint16_t *data, uint16_t timeout);
-	uint8_t I2Cdev_readByte(uint8_t devAddr, uint8_t regAddr, uint8_t *data, uint16_t timeout);
-	uint8_t I2Cdev_readWord(uint8_t devAddr, uint8_t regAddr, uint16_t *data, uint16_t timeout);
-	uint8_t I2Cdev_readBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint8_t *data, uint16_t timeout);
-	uint8_t I2Cdev_readWords(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint16_t *data, uint16_t timeout);
+	uint8_t I2Cdev_readBit(uint8_t devAddr, uint8_t regAddr, uint8_t bitNum,
+			uint8_t *data, uint16_t timeout);
+	uint8_t I2Cdev_readBitW(uint8_t devAddr, uint8_t regAddr, uint8_t bitNum,
+			uint16_t *data, uint16_t timeout);
+	uint8_t I2Cdev_readBits(uint8_t devAddr, uint8_t regAddr, uint8_t bitStart,
+			uint8_t length, uint8_t *data, uint16_t timeout);
+	uint8_t I2Cdev_readBitsW(uint8_t devAddr, uint8_t regAddr, uint8_t bitStart,
+			uint8_t length, uint16_t *data, uint16_t timeout);
+	uint8_t I2Cdev_readByte(uint8_t devAddr, uint8_t regAddr, uint8_t *data,
+			uint16_t timeout);
+	uint8_t I2Cdev_readWord(uint8_t devAddr, uint8_t regAddr, uint16_t *data,
+			uint16_t timeout);
+	uint8_t I2Cdev_readBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length,
+			uint8_t *data, uint16_t timeout);
+	uint8_t I2Cdev_readWords(uint8_t devAddr, uint8_t regAddr, uint8_t length,
+			uint16_t *data, uint16_t timeout);
 
-	uint16_t I2Cdev_writeBit(uint8_t devAddr, uint8_t regAddr, uint8_t bitNum, uint8_t data);
-	uint16_t I2Cdev_writeBitW(uint8_t devAddr, uint8_t regAddr, uint8_t bitNum, uint16_t data);
-	uint16_t I2Cdev_writeBits(uint8_t devAddr, uint8_t regAddr, uint8_t bitStart, uint8_t length, uint8_t data);
-	uint16_t I2Cdev_writeBitsW(uint8_t devAddr, uint8_t regAddr, uint8_t bitStart, uint8_t length, uint16_t data);
+	uint16_t I2Cdev_writeBit(uint8_t devAddr, uint8_t regAddr, uint8_t bitNum,
+			uint8_t data);
+	uint16_t I2Cdev_writeBitW(uint8_t devAddr, uint8_t regAddr, uint8_t bitNum,
+			uint16_t data);
+	uint16_t I2Cdev_writeBits(uint8_t devAddr, uint8_t regAddr,
+			uint8_t bitStart, uint8_t length, uint8_t data);
+	uint16_t I2Cdev_writeBitsW(uint8_t devAddr, uint8_t regAddr,
+			uint8_t bitStart, uint8_t length, uint16_t data);
 	uint16_t I2Cdev_writeByte(uint8_t devAddr, uint8_t regAddr, uint8_t data);
 	uint16_t I2Cdev_writeWord(uint8_t devAddr, uint8_t regAddr, uint16_t data);
-	uint16_t I2Cdev_writeBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint8_t *data);
-	uint16_t I2Cdev_writeWords(uint8_t devAddr, uint8_t regAddr, uint8_t length, uint16_t *data);
-	uint16_t I2C_write(uint8_t slave_addr, uint8_t reg_addr,
-			uint8_t length, uint8_t *data);
+	uint16_t I2Cdev_writeBytes(uint8_t devAddr, uint8_t regAddr, uint8_t length,
+			uint8_t *data);
+	uint16_t I2Cdev_writeWords(uint8_t devAddr, uint8_t regAddr, uint8_t length,
+			uint16_t *data);
+	uint16_t I2C_write(uint8_t slave_addr, uint8_t reg_addr, uint8_t length,
+			uint8_t *data);
 
 private:
 	// Hold pointer to inited HAL I2C device
-	 I2C_HandleTypeDef * I2Cdev_hi2c;
+	I2C_HandleTypeDef *I2Cdev_hi2c;
 
 };
 #ifdef __cplusplus

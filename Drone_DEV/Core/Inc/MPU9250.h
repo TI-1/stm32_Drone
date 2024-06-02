@@ -9,32 +9,31 @@
  
  Library may be used freely and without limit with attribution.
  
-*/
-  
+ */
+
 #ifndef MPU9250_h
 #define MPU9250_h
 
- #include <stdint.h>
+#include <stdint.h>
 #include "I2Cdev.h"
 
 // See also MPU-9250 Register Map and Descriptions, Revision 4.0, RM-MPU-9250A-00, Rev. 1.4, 9/9/2013 for registers not listed in 
 // above document; the MPU9250 and MPU9150 are virtually identical but the latter has a different register map
 //
 
-
 #define SELF_TEST_X_GYRO 0x00                  
 #define SELF_TEST_Y_GYRO 0x01                                                                          
 #define SELF_TEST_Z_GYRO 0x02
 
 /*#define X_FINE_GAIN      0x03 // [7:0] fine gain
-#define Y_FINE_GAIN      0x04
-#define Z_FINE_GAIN      0x05
-#define XA_OFFSET_H      0x06 // User-defined trim values for accelerometer
-#define XA_OFFSET_L_TC   0x07
-#define YA_OFFSET_H      0x08
-#define YA_OFFSET_L_TC   0x09
-#define ZA_OFFSET_H      0x0A
-#define ZA_OFFSET_L_TC   0x0B */
+ #define Y_FINE_GAIN      0x04
+ #define Z_FINE_GAIN      0x05
+ #define XA_OFFSET_H      0x06 // User-defined trim values for accelerometer
+ #define XA_OFFSET_L_TC   0x07
+ #define YA_OFFSET_H      0x08
+ #define YA_OFFSET_L_TC   0x09
+ #define ZA_OFFSET_H      0x0A
+ #define ZA_OFFSET_L_TC   0x0B */
 
 #define SELF_TEST_X_ACCEL 0x0D
 #define SELF_TEST_Y_ACCEL 0x0E    
@@ -217,8 +216,7 @@ typedef enum {
 	sample_rate_set_failed,
 	I2C_bypass_failed,
 	data_interrupt_set_failed
-}MPU9250_init_status;
-
+} MPU9250_init_status;
 
 #define MYDEBUG
 
@@ -228,59 +226,56 @@ typedef enum {
 #define Debug(x)
 #endif
 
-class MPU9250
-{
-  public: 
-	  MPU9250(uint8_t intPin,I2C_HandleTypeDef * hi2c);
-	  MPU9250(I2C_HandleTypeDef * hi2c);
-	  MPU9250(MPU9250& t) = delete;
-	  MPU9250& operator=(const MPU9250& t) = delete;
+class MPU9250 {
+public:
+	MPU9250(uint8_t intPin, I2C_HandleTypeDef *hi2c);
+	MPU9250(I2C_HandleTypeDef *hi2c);
+	MPU9250(MPU9250 &t) = delete;
+	MPU9250& operator=(const MPU9250 &t) = delete;
 
-	  uint8_t getMPU9250ID();
-	  void resetMPU9250();
-	  uint8_t initMPU9250 (uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate);
-	  float getAres(uint8_t Ascale);
-	  float getGres(uint8_t Gscale);
-	  void calibrateMPU9250(float * dest1, float * dest2);
-	  void SelfTest(float * destination);
-	  void readMPU9250Data(int16_t * destination);
-	  void readAccelData(int16_t * destination);
-	  void readGyroData(int16_t * destination);
-	  bool checkNewAccelGyroData();
-	  bool checkNewMagData();
-	  int16_t readGyroTempData();
-	  void gyromagSleep();
-	  void gyromagWake(uint8_t Mmode);
-	  void accelWakeOnMotion();
-	  bool checkWakeOnMotion();
+	uint8_t getMPU9250ID();
+	void resetMPU9250();
+	uint8_t initMPU9250(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate);
+	float getAres(uint8_t Ascale);
+	float getGres(uint8_t Gscale);
+	void calibrateMPU9250(float *dest1, float *dest2);
+	void SelfTest(float *destination);
+	void readMPU9250Data(int16_t *destination);
+	void readAccelData(int16_t *destination);
+	void readGyroData(int16_t *destination);
+	bool checkNewAccelGyroData();
+	bool checkNewMagData();
+	int16_t readGyroTempData();
+	void gyromagSleep();
+	void gyromagWake(uint8_t Mmode);
+	void accelWakeOnMotion();
+	bool checkWakeOnMotion();
 
-	  int16_t getXAccelOffset();
-	  int16_t getYAccelOffset();
-	  int16_t getZAccelOffset();
-	  void setXAccelOffset(int16_t offset);
-	  void setYAccelOffset(int16_t offset);
-	  void setZAccelOffset(int16_t offset);
+	int16_t getXAccelOffset();
+	int16_t getYAccelOffset();
+	int16_t getZAccelOffset();
+	void setXAccelOffset(int16_t offset);
+	void setYAccelOffset(int16_t offset);
+	void setZAccelOffset(int16_t offset);
 
-	  int16_t getXGyroOffset();
-	  int16_t getYGyroOffset();
-	  int16_t getZGyroOffset();
-	  void setXGyroOffset(int16_t offset);
-	  void setYGyroOffset(int16_t offset);
-	  void setZGyroOffset(int16_t offset);
+	int16_t getXGyroOffset();
+	int16_t getYGyroOffset();
+	int16_t getZGyroOffset();
+	void setXGyroOffset(int16_t offset);
+	void setYGyroOffset(int16_t offset);
+	void setZGyroOffset(int16_t offset);
 
+	void readGyroDataScaled(float *destination);
+	void readAccelDataScaled(float *destination);
 
-	  void readGyroDataScaled(float * destination);
-	  void readAccelDataScaled(float * destination);
-	  
-
-  private:
-	  I2C _i2c;
-	  uint8_t _intPin = 0;
-	  /** The accelerometer scale factor*/
-	  float _aRes = 0;
-	  /** The gyroscope scale factor*/
-	  float _gRes = 0;
-	  uint8_t _Mmode = 0;
+private:
+	I2C _i2c;
+	uint8_t _intPin = 0;
+	/** The accelerometer scale factor*/
+	float _aRes = 0;
+	/** The gyroscope scale factor*/
+	float _gRes = 0;
+	uint8_t _Mmode = 0;
 
 };
 
