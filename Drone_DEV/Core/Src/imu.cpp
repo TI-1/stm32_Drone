@@ -5,23 +5,14 @@
  *      Author: tobii
  */
 #include "imu.h"
-#include "debug.h"
 #include "stdio.h"
 
-//TODO Create virtual class for IMU
-
-/**
- * IMU class constructor
- * @param calibration set calibration flag as true or false
- */
-IMU::IMU(uint8_t Ascale = ACCEL_FS_SEL_4G, uint8_t Gscale = GYRO_FS_SEL_1000DPS, uint8_t sampleRate = 4, bool calibration = false) {
-	initialise(Ascale, Gscale, sampleRate);
-}
+//TODO Create virtual class for IMU to allow easy swap in and out of IMU
 
 /**
  * IMU class default constructor
  */
-IMU::IMU(uint8_t Ascale = ACCEL_FS_SEL_4G, uint8_t Gscale = GYRO_FS_SEL_1000DPS, uint8_t sampleRate = 4) {
+IMU::IMU(uint8_t Ascale = ACCEL_FS_SEL_4G, uint8_t Gscale = GYRO_FS_SEL_1000DPS, uint8_t sampleRate = 4, I2C_HandleTypeDef * hi2c = nullptr):_mpu(hi2c) {
 	initialise(Ascale, Gscale, sampleRate);
 }
 
@@ -30,32 +21,47 @@ IMU::IMU(uint8_t Ascale = ACCEL_FS_SEL_4G, uint8_t Gscale = GYRO_FS_SEL_1000DPS,
  * @param Ascale Accleration scale factor
  * @param Gscale Gyroscope scale factor
  * @param sampleRate Data sample rate
- * @return
  */
-uint8_t IMU::initialise(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate) {
-	init_status = initMPU9250(Ascale, Gscale, sampleRate);
+void IMU::initialise(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate) {
+	init_status = _mpu.initMPU9250(Ascale, Gscale, sampleRate);
 	//TODO possibly add check to make sure offsets set correctly
-	 setXAccelOffset(USER_XA_OFFSET);
-	 setYAccelOffset(USER_YA_OFFSET);
-	 setZAccelOffset(USER_ZA_OFFSET);
-	 setXGyroOffset(USER_XG_OFFSET);
-	 setYGyroOffset(USER_YG_OFFSET);
-	 setZGyroOffset(USER_ZG_OFFSET);
-	return init_status;
+	 _mpu.setXAccelOffset(USER_XA_OFFSET);
+	 _mpu.setYAccelOffset(USER_YA_OFFSET);
+	 _mpu.setZAccelOffset(USER_ZA_OFFSET);
+	 _mpu.setXGyroOffset(USER_XG_OFFSET);
+	 _mpu.setYGyroOffset(USER_YG_OFFSET);
+	 _mpu.setZGyroOffset(USER_ZG_OFFSET);
 }
 
+/**
+ * Get IMU yaw value
+ * @return IMU yaw value
+ */
 float IMU::Yaw() {
 	return _ypr[0];
 }
 
+/**
+ * Get IMU pitch value
+ * @return IMU pitch value
+ */
 float IMU::Pitch() {
 	return _ypr[1];
 }
 
+/**
+ * Get IMU roll value
+ * @return IMU roll value
+ */
 float IMU::Roll() {
 	return _ypr[2];
 }
 
+/**
+ * Get IMU Acceleration value for specific axis
+ * @param axis axis to return
+ * @return Acceleration value
+ */
 float IMU::Accel(axis axis) {
 	switch (axis){
 		case X:
@@ -72,6 +78,11 @@ float IMU::Accel(axis axis) {
 	}
 }
 
+/**
+ * Get IMU Gyro rate value for specific axis
+ * @param axis axis to return
+ * @return Gyro rate value
+ */
 float IMU::Gyro(axis axis) {
 	switch (axis){
 		case X:
@@ -88,24 +99,38 @@ float IMU::Gyro(axis axis) {
 	}
 }
 
+/**
+ * Read IMU
+ */
 void IMU::readIMU() {
 	uint32_t Now;
-	readAccelDataScaled(_a_xyz);
-	readGyroDataScaled(_g_xyz);
+	_mpu.readAccelDataScaled(_a_xyz);
+	_mpu.readGyroDataScaled(_g_xyz);
 	Now = HAL_GetTick();
 	_deltat = static_cast<float>(((Now - _lastUpdate) / 1000.0f));
 	calculateMadgwickQuaternion();
 	_lastUpdate = Now;
 }
 
+/**
+ * Check if IMU can be identified
+ * @return true if IMU connected
+ */
 bool IMU::checkStatus(){
-	return (getMPU9250ID() == MPU1);
+	return (_mpu.getMPU9250ID() == MPU1);
 }
 
+/**
+ * Check if new IMU data is available
+ * @return true if new data is available
+ */
 bool IMU::dataReady() {
-	return checkNewAccelGyroData();
+	return _mpu.checkNewAccelGyroData();
 }
 
+/**
+ * Calcualte Madgwick Quaternion
+ */
 void IMU::calculateMadgwickQuaternion() {
 	float ax = _a_xyz[0];
     float ay = _a_xyz[1];
@@ -224,16 +249,25 @@ void IMU::calculateMadgwickQuaternion() {
 	_ypr[2] = (atan2(2.0f * (m_q_madg[0] * m_q_madg[1] + m_q_madg[2] * m_q_madg[3]), m_q_madg[0] * m_q_madg[0] - m_q_madg[1] * m_q_madg[1] - m_q_madg[2] * m_q_madg[2] + m_q_madg[3] * m_q_madg[3])) * 180.f/M_PI;
 }
 
+/**
+ * Debug Gyro readings
+ */
 void IMU::debugGyro() {
 	printf("gyro_X:%f\tgyro_Y:%f\tgyro_Z:%f\r\n",_g_xyz[0],_g_xyz[1], _g_xyz[2]);
 }
 
+/**
+ * Debug Angle readings
+ */
 void IMU::debugYPR() {
 	printf("Yaw:%3.3f\tPitch:%3.3f\tRoll:%3.3f\tDelta:%3.3f\r\n",_ypr[0],_ypr[1],_ypr[2],_deltat);
 }
 
+/**
+ * Calibrate IMU
+ */
 void IMU::calibrateImu() {
 	float dest1[3];
 	float dest2[3];
-	calibrateMPU9250(dest1, dest2);
+	_mpu.calibrateMPU9250(dest1, dest2);
 }
