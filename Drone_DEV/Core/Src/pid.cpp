@@ -14,8 +14,8 @@
  * @param kd Derivative constant
  * @param imax Integral max value
  */
-PID::PID(float kp, float ki, float kd, float imax):_kp(kp),_ki(ki),_kd(kd),_imax(imax)
-{
+PID::PID(float kp, float ki, float kd, float imax) :
+		_kp(kp), _ki(ki), _kd(kd), _imax(imax) {
 	_lastCompute = HAL_GetTick();
 }
 
@@ -27,18 +27,21 @@ PID::PID(float kp, float ki, float kd, float imax):_kp(kp),_ki(ki),_kd(kd),_imax
 void PID::controllerUpdate(float setpoint, float input) {
 	_setpoint = setpoint;
 	_input = input;
-	float dt = (HAL_GetTick()-_lastCompute)/1000.0f;
+	float dt = (HAL_GetTick() - _lastCompute) / 1000.0f;
 	_dt = dt;
 	float error = setpoint - input;
 	_integrator += _ki * error * dt;
-	_integrator = ((_integrator)<(-_imax)?(-_imax):((_integrator)>(_imax)?(_imax):(_integrator)));
+	_integrator = (
+			(_integrator) < (-_imax) ?
+					(-_imax) :
+					((_integrator) > (_imax) ? (_imax) : (_integrator)));
 	float p_out = error * _kp;
 	float i_out = _integrator;
 
-	if (derivative_mode == doe){
+	if (derivative_mode == doe) {
 		float d_out = _kd * (error - _lastError) / dt;
 		_controllerOutput = p_out + i_out + d_out;
-		}
+	}
 
 	else {
 		float d_out = _kd * (input - _lastInput) / dt;
@@ -130,5 +133,7 @@ float PID::getkd() {
 }
 
 void PID::debugPID(const char *axis) {
-	printf("%s-set:%3.3f\tinput:%3.3f\terror:%3.3f\tout:%3.3f\tdt:%3.3f\r\n",axis,_setpoint, _input, _setpoint - _input, _controllerOutput,_dt);
+	printf("%s-set:%3.3f\tinput:%3.3f\terror:%3.3f\tout:%3.3f\tdt:%3.3f\r\n",
+			axis, _setpoint, _input, _setpoint - _input, _controllerOutput,
+			_dt);
 }
