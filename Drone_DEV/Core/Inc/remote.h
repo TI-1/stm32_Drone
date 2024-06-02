@@ -1,10 +1,8 @@
 #ifndef _REMOTE_H_
 #define _REMOTE_H_
 
- #include "usart.h"
+#include "usart.h"
 #include "stdint.h"
-
-
 
 #define IBUS_USER_CHANNELS 6
 
@@ -15,39 +13,31 @@
 #define REMOTE_MAX 2000
 #define REMOTE_MIN 1000
 
-enum remote{
-	Roll,
-	Pitch,
-	Throttle,
-	Yaw,
-	Arm = 5
+enum remote {
+	Roll, Pitch, Throttle, Yaw, Arm = 5
 };
 
+class Remote {
+public:
+	Remote(UART_HandleTypeDef *huart);
+	Remote(const Remote &obj) = delete;
+	Remote& operator=(const Remote &obj) = delete;
+	int16_t getRemoteData(remote rc);
+	void debugRemote();
+public:
+	bool signalLost = false;
 
-class Remote
-{
-    public:
-        Remote(UART_HandleTypeDef* huart);
-        Remote(const Remote& obj) = delete;
-		Remote& operator=(const Remote& obj) = delete;
-        int16_t getRemoteData(remote rc);
-        void debugRemote();
-        bool signalLost = false;
+private:
 
+	uint8_t _uartRxBuffer[IBUS_LENGTH] = { 0 };
+	uint16_t _ibusData[IBUS_USER_CHANNELS];
+	UART_HandleTypeDef *_huart;
+	int8_t _nullcount = 0;
 
-
-
-    private:
-        
-        uint8_t m_uart_rx_buffer[IBUS_LENGTH] = {0};
-        uint16_t _ibus_data[IBUS_USER_CHANNELS];
-        UART_HandleTypeDef* m_huart;
-        int8_t _nullcount = 0;
-
-    private:
-        bool ibusIsValid();
-        bool ibusChecksum();
-        void ibusUpdate();
-        bool ibusRead();
+private:
+	bool ibusIsValid();
+	bool ibusChecksum();
+	void ibusUpdate();
+	bool ibusRead();
 };
 #endif
