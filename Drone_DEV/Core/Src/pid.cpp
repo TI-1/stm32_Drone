@@ -19,6 +19,16 @@ PID::PID(float kp, float ki, float kd, float imax) :
 	_lastCompute = HAL_GetTick();
 }
 
+PID::PID(){
+	_kp = 0.0;
+	_ki = 0.0;
+	_kd = 0.0;
+	_imax = 0.0;
+	_lastCompute = HAL_GetTick();
+}
+
+
+
 /**
  * Method to calculate PID controller output
  * @param setpoint Set value

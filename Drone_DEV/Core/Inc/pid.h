@@ -20,6 +20,7 @@ class PID {
 
 public:
 	PID(float kp, float ki, float kd, float imax);
+	PID();
 	void controllerUpdate(float setpoint, float input);
 	void reset_i();
 	void setDOM();
