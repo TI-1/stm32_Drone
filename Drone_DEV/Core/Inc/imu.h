@@ -20,29 +20,35 @@ class IMU {
 public:
 	IMU(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate,
 			I2C_HandleTypeDef *hi2c);
+	IMU();
 	IMU(const IMU &obj) = delete;
 	IMU& operator=(const IMU &obj) = delete;
-	float Yaw();
-	float Pitch();
-	float Roll();
-	float Accel(axis axis);
-	float Gyro(axis axis);
+	virtual float Yaw();
+	virtual float Pitch();
+	virtual float Roll();
+	virtual float Accel(axis axis);
+	virtual float Gyro(axis axis);
 	void calibrateImu();
-	void readIMU();
-	bool dataReady();
-	bool checkStatus();
+	virtual void readIMU();
+	virtual bool dataReady();
+	virtual bool checkStatus();
 	void debugGyro();
 	void debugYPR();
+	virtual ~IMU(){};
+	virtual void initialise();
 
 public:
-	uint8_t init_status = ok;
+	uint8_t _initStatus = ok;
 
 private:
-	void initialise(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate);
+	void init(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate);
 	void calculateMadgwickQuaternion();
 
 private:
 	MPU9250 _mpu;
+	uint8_t _AScale;
+	uint8_t _GScale;
+	uint8_t _sampleRate;
 	float _ypr[3] = { 0, 0, 0 };
 	float _a_xyz[3];
 	float _g_xyz[3];

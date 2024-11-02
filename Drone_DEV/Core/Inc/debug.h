@@ -12,13 +12,6 @@
 #include <stdio.h>
 #include "gpio.h"
 
-#define MYDEBUG
-
-#ifdef MYDEBUG
-#define Debug(x) x
-#else
-#define Debug(x)
-#endif
 
 typedef enum {
 	GYRO_FREEZE = 0,

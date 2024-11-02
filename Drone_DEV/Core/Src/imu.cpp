@@ -14,8 +14,13 @@
  */
 IMU::IMU(uint8_t Ascale = ACCEL_FS_SEL_4G, uint8_t Gscale = GYRO_FS_SEL_1000DPS,
 		uint8_t sampleRate = 4, I2C_HandleTypeDef *hi2c = nullptr) :
-		_mpu(hi2c) {
-	initialise(Ascale, Gscale, sampleRate);
+		_mpu(hi2c),_AScale(Ascale),_GScale(Gscale),_sampleRate(sampleRate) {
+}
+
+IMU::IMU():_mpu(nullptr),_AScale(ACCEL_FS_SEL_4G),_GScale(GYRO_FS_SEL_1000DPS),_sampleRate(4){}
+
+void IMU::initialise(){
+	init(_AScale,_GScale,_sampleRate);
 }
 
 /**
@@ -24,8 +29,8 @@ IMU::IMU(uint8_t Ascale = ACCEL_FS_SEL_4G, uint8_t Gscale = GYRO_FS_SEL_1000DPS,
  * @param Gscale Gyroscope scale factor
  * @param sampleRate Data sample rate
  */
-void IMU::initialise(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate) {
-	init_status = _mpu.initMPU9250(Ascale, Gscale, sampleRate);
+void IMU::init(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate) {
+	_initStatus = _mpu.initMPU9250(Ascale, Gscale, sampleRate);
 	//TODO possibly add check to make sure offsets set correctly
 	_mpu.setXAccelOffset(USER_XA_OFFSET);
 	_mpu.setYAccelOffset(USER_YA_OFFSET);

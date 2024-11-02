@@ -12,12 +12,15 @@
  * Constructor for Motor class
  * @param pwm_timer set which timer motors use
  */
-Motors::Motors(TIM_HandleTypeDef *pwm_timer):_pwmTimer(pwm_timer) {
-    HAL_TIM_PWM_Start(_pwmTimer, TIM_CHANNEL_1);
-    HAL_TIM_PWM_Start(_pwmTimer, TIM_CHANNEL_2);
-    HAL_TIM_PWM_Start(_pwmTimer, TIM_CHANNEL_3);
-    HAL_TIM_PWM_Start(_pwmTimer, TIM_CHANNEL_4);
-    _counterPeriod = _pwmTimer -> Instance -> ARR;
+Motors::Motors(TIM_HandleTypeDef *pwm_timer):_pwmTimer(pwm_timer),_counterPeriod( _pwmTimer -> Instance -> ARR) {
+
+}
+
+void Motors::initialise(){
+	HAL_TIM_PWM_Start(_pwmTimer, TIM_CHANNEL_1);
+	HAL_TIM_PWM_Start(_pwmTimer, TIM_CHANNEL_2);
+	HAL_TIM_PWM_Start(_pwmTimer, TIM_CHANNEL_3);
+	HAL_TIM_PWM_Start(_pwmTimer, TIM_CHANNEL_4);
 }
 
 /**

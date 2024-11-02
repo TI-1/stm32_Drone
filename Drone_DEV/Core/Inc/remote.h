@@ -20,10 +20,13 @@ enum remote {
 class Remote {
 public:
 	Remote(UART_HandleTypeDef *huart);
+	Remote();
 	Remote(const Remote &obj) = delete;
 	Remote& operator=(const Remote &obj) = delete;
-	int16_t getRemoteData(remote rc);
+	virtual int16_t getRemoteData(remote rc);
 	void debugRemote();
+	virtual ~Remote(){_huart = nullptr;};
+	virtual void initialise();
 public:
 	bool signalLost = false;
 

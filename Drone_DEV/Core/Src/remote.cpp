@@ -7,6 +7,15 @@
  */
 Remote::Remote(UART_HandleTypeDef *huart) :
 		_huart(huart) {
+
+}
+
+Remote::Remote() :
+		_huart(nullptr) {
+
+}
+
+void Remote::initialise(){
 	HAL_UART_Receive_DMA(_huart, _uartRxBuffer, 32);
 }
 

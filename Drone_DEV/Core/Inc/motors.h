@@ -24,13 +24,15 @@ class Motors {
 public:
 	Motors(TIM_HandleTypeDef *pwm_timer);
 	Motors(const Motors &obj) = delete;
+	Motors() = default;
 	Motors& operator=(const Motors &obj) = delete;
-	~Motors() {
+	virtual ~Motors() {
 		_pwmTimer = nullptr;
 	}
-	void setOutput(motorPosition pos, uint16_t output);
-	uint16_t getOutput(motorPosition pos);
-	void command(state state);
+	virtual void initialise();
+	virtual void setOutput(motorPosition pos, uint16_t output);
+	virtual uint16_t getOutput(motorPosition pos);
+	virtual void command(state state);
 	void callibrate();
 	void setMinDutyCycle(float dutyCycle);
 	void setMaxDutyCycle(float dutyCycle);
@@ -38,8 +40,8 @@ public:
 
 private:
 	uint16_t _output[4];
-	TIM_HandleTypeDef *_pwmTimer;
-	uint16_t _counterPeriod;
+	TIM_HandleTypeDef *_pwmTimer = nullptr;
+	uint16_t _counterPeriod = 0;
 	float _maxDutyCycle = 0.1;
 	float _minDutyCycle = 0.05;
 	uint16_t _maxRCInput = 2000;
