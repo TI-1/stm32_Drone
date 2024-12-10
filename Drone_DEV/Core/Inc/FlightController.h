@@ -15,6 +15,7 @@
 #include "tim.h"
 #include "usart.h"
 #include "telemetry.h"
+#include <array>
 
 #define SAFETY_POSITION_MIN 1100 //TODO think of better name
 #define SAFETY_POSITION_MAX	1950
@@ -55,6 +56,15 @@ typedef enum {
 	GYRO_FREEZE = 0, EXTREME_ANGLE, IMU_INIT, WATCHDOG_RESET
 } emergency_stop;
 
+enum {
+	ROLL,
+	PITCH,
+	YAW,
+	ANGLE_ROLL,
+	ANGLE_PITCH,
+	NUM_PIDS
+};
+
 class FlightController {
 public:
 
@@ -81,12 +91,8 @@ protected:
 
 private:
 	static FlightController *_instance;
-	PID _rateX = PID(0, 0, 0, 0);
-	PID _rateY = PID(0, 0, 0, 0);
-	PID _rateZ = PID(0, 0, 0, 0);
-	PID _angleX = PID(0, 0, 0, 0);
-	PID _angleY = PID(0, 0, 0, 0);
-	Telemetry telemetry{_telemHuart, 1};
+	std::array<PID, NUM_PIDS> pidControllers;
+	Telemetry* _telem = nullptr;
 	IMU *_imu = nullptr;
 	Motors *_motors = nullptr;
 	Remote *_remote = nullptr;
@@ -117,6 +123,7 @@ private:
 	void sendTelemetryData();
 	void indicateEmergency(emergency_stop reason);
 	void emergencyBlink(int delayMs);
+	void initialisePIDS();
 
 };
 

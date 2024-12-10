@@ -47,8 +47,6 @@ void FlightController::initialise() {
 void FlightController::loop() { //Loop rate currently determined by IMU dataReady rate = 200hz
 	if (_imu->dataReady()) {
 		_imu->readIMU();
-		telemetry.gatherData(_imu);
-		telemetry.update();
 		process();
 	}
 }
@@ -136,34 +134,34 @@ void FlightController::emergencyStop(emergency_stop reason) {
 }
 
 void FlightController::resetPIDIntegrals() {
-	_rateX.reset_i();
-	_rateY.reset_i();
-	_rateZ.reset_i();
-	_angleX.reset_i();
-	_angleY.reset_i();
+	pidControllers[ROLL].reset_i();
+	pidControllers[PITCH].reset_i();
+	pidControllers[YAW].reset_i();
+	pidControllers[ANGLE_ROLL].reset_i();
+	pidControllers[ANGLE_PITCH].reset_i();
 }
 
 void FlightController::computePIDs() {
 	if (_Fm == FC_ANGLE_MODE) {
-		_angleX.controllerUpdate(
+		pidControllers[ANGLE_ROLL].controllerUpdate(
 				map<int16_t>(_remote->getRemoteData(Roll), REMOTE_MIN,
 						REMOTE_MAX, ANGLE_MIN, ANGLE_MAX), _imu->Roll());
-		_angleY.controllerUpdate(
+		pidControllers[ANGLE_PITCH].controllerUpdate(
 				map<int16_t>(_remote->getRemoteData(Pitch), REMOTE_MIN,
 						REMOTE_MAX, ANGLE_MIN, ANGLE_MAX), _imu->Pitch());
-		_rateX.controllerUpdate(_angleX.getOutput(), _imu->Gyro(X));
-		_rateY.controllerUpdate(_angleY.getOutput(), _imu->Gyro(Y));
+		pidControllers[ROLL].controllerUpdate(pidControllers[ANGLE_ROLL].getOutput(), _imu->Gyro(X));
+		pidControllers[PITCH].controllerUpdate(pidControllers[ANGLE_PITCH].getOutput(), _imu->Gyro(Y));
 	} else {
-		_rateX.controllerUpdate(
+		pidControllers[ROLL].controllerUpdate(
 				map<int16_t>(_remote->getRemoteData(Roll), REMOTE_MIN,
 						REMOTE_MAX, ROLL_RATE_MIN, ROLL_RATE_MAX),
 				_imu->Gyro(X));
-		_rateY.controllerUpdate(
+		pidControllers[PITCH].controllerUpdate(
 				map<int16_t>(_remote->getRemoteData(Pitch), REMOTE_MIN,
 						REMOTE_MAX, PITCH_RATE_MIN, PITCH_RATE_MAX),
 				_imu->Gyro(Y));
 	}
-	_rateZ.controllerUpdate(
+	pidControllers[YAW].controllerUpdate(
 			map<int16_t>(_remote->getRemoteData(Yaw), REMOTE_MIN, REMOTE_MAX,
 					YAW_RATE_MIN, YAW_RATE_MAX), _imu->Gyro(Z));
 }
@@ -172,21 +170,29 @@ void FlightController::computeMotorOutputs() {
 	int16_t throttle = map<int16_t>(_remote->getRemoteData(Throttle),
 			REMOTE_MIN, REMOTE_MAX, Throttle_Min, Throttle_Max);
 	_motors->setOutput(FrontRight,
-			throttle - _rateX.getOutput() - _rateY.getOutput()
-					+ _rateZ.getOutput());
+			throttle - pidControllers[ROLL].getOutput() - pidControllers[PITCH].getOutput()
+					+ pidControllers[YAW].getOutput());
 	_motors->setOutput(RearLeft,
-			throttle + _rateX.getOutput() + _rateY.getOutput()
-					+ _rateZ.getOutput());
+			throttle + pidControllers[ROLL].getOutput() + pidControllers[PITCH].getOutput()
+					+ pidControllers[YAW].getOutput());
 	_motors->setOutput(FrontLeft,
-			throttle + _rateX.getOutput() - _rateY.getOutput()
-					- _rateZ.getOutput());
+			throttle + pidControllers[ROLL].getOutput() - pidControllers[PITCH].getOutput()
+					- pidControllers[YAW].getOutput());
 	_motors->setOutput(RearRight,
-			throttle - _rateX.getOutput() + _rateY.getOutput()
-					- _rateZ.getOutput());
+			throttle - pidControllers[ROLL].getOutput() + pidControllers[PITCH].getOutput()
+					- pidControllers[YAW].getOutput());
 }
 
 bool FlightController::minThrottle() {
 	return _remote->getRemoteData(Throttle) >= Throttle_Min;
+}
+
+void FlightController::initialisePIDS(){
+	pidControllers[ROLL] = PID(1.0, 0.1, 0.05, 100.0);
+	pidControllers[PITCH] = PID(1.0, 0.1, 0.05, 100.0);
+	pidControllers[YAW] = PID(1.0, 0.1, 0.05, 100.0);
+	pidControllers[ANGLE_ROLL] = PID(1.5, 0.2, 0.1, 100.0);
+	pidControllers[ANGLE_PITCH] = PID(1.5, 0.2, 0.1, 100.0);
 }
 
 void FlightController::fcDebug(debug_group debug) {
@@ -195,12 +201,12 @@ void FlightController::fcDebug(debug_group debug) {
 		debugArmStatus();
 		_imu->debugGyro();
 		_imu->debugYPR();
-		_rateX.debugPID("X");
-		_rateY.debugPID("Y");
-		_rateZ.debugPID("Z");
+		pidControllers[ROLL].debugPID("X");
+		pidControllers[PITCH].debugPID("Y");
+		pidControllers[YAW].debugPID("Z");
 		if (_Fm == FC_ANGLE_MODE) {
-			_angleX.debugPID("Roll Angle");
-			_angleY.debugPID("Pitch Angle");
+			pidControllers[ANGLE_ROLL].debugPID("Roll Angle");
+			pidControllers[ANGLE_PITCH].debugPID("Pitch Angle");
 		}
 		_motors->DebugMotors();
 		break;
@@ -211,13 +217,13 @@ void FlightController::fcDebug(debug_group debug) {
 		_imu->debugYPR();
 		break;
 	case ANGLES:
-		_angleX.debugPID("Roll Angle");
-		_angleY.debugPID("Pitch Angle");
+		pidControllers[ANGLE_ROLL].debugPID("Roll Angle");
+		pidControllers[ANGLE_PITCH].debugPID("Pitch Angle");
 		break;
 	case PIDS:
-		_rateX.debugPID("X");
-		_rateY.debugPID("Y");
-		_rateZ.debugPID("Z");
+		pidControllers[ROLL].debugPID("X");
+		pidControllers[PITCH].debugPID("Y");
+		pidControllers[YAW].debugPID("Z");
 		break;
 	case MOTORS:
 		_motors->DebugMotors();
@@ -284,4 +290,50 @@ void FlightController::emergencyBlink(int delayMs) {
 		HAL_GPIO_TogglePin(RedLED_GPIO_Port, RedLED_Pin);
 					HAL_Delay(delayMs);
 	}
+}
+
+void FlightController::updateParams() {
+	mavlink_param_set_t param;
+	_telem -> processIncomingData(param);
+	switch(param.param_id[0]){
+	case 'r':
+		if(param.param_id[5] == 'P'){
+			pidControllers[ROLL].setkp(param.param_value);
+		}
+		else if (param.param_id[5] == 'I'){
+			pidControllers[ROLL].setki(param.param_value);
+		}
+		else if (param.param_id[5] == 'D'){
+			pidControllers[ROLL].setkd(param.param_value);
+		}
+		break;
+
+	case 'p':
+		if(param.param_id[6] == 'P'){
+			pidControllers[PITCH].setkp(param.param_value);
+		}
+		else if (param.param_id[6] == 'I'){
+			pidControllers[PITCH].setki(param.param_value);
+		}
+		else if (param.param_id[6] == 'D'){
+			pidControllers[PITCH].setkd(param.param_value);
+		}
+		break;
+
+	case 'y':
+		if(param.param_id[4] == 'P'){
+			pidControllers[PITCH].setkp(param.param_value);
+		}
+		else if (param.param_id[4] == 'I'){
+			pidControllers[PITCH].setki(param.param_value);
+		}
+		else if (param.param_id[4] == 'D'){
+			pidControllers[PITCH].setkd(param.param_value);
+		}
+		break;
+
+	default:
+		break;
+	}
+
 }
