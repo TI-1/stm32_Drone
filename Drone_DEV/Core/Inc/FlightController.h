@@ -38,14 +38,19 @@
 #define LOG_DEBUG(msg)
 #endif
 
+enum FlightState {
+    BOOTING,
+    STANDBY,
+    ARMED,
+	DISARMED,
+    IN_FLIGHT,
+    EMERGENCY_STOP
+};
 
 typedef enum {
 	FC_RATE_MODE = 0, FC_ANGLE_MODE
 } flight_mode;
 
-typedef enum {
-	ARMED = 0, DISARMED
-} arm_status;
 
 typedef enum {
 	ALL = 0, GYRO, YPR, ANGLES, PIDS, MOTORS, FC_STATUS
@@ -53,7 +58,7 @@ typedef enum {
 } debug_group;
 
 typedef enum {
-	GYRO_FREEZE = 0, EXTREME_ANGLE, IMU_INIT, WATCHDOG_RESET
+	GYRO_FREEZE = 0, EXTREME_ANGLE, IMU_INIT
 } emergency_stop;
 
 enum {
@@ -68,62 +73,45 @@ enum {
 class FlightController {
 public:
 
-	FlightController(IMU *imu, Motors *motors, Remote *remote,
-			UART_HandleTypeDef *telem);
-	FlightController(IMU *imu, Motors *motors, Remote *remote, flight_mode Fm,
-			UART_HandleTypeDef *telem);
+	FlightController(IMU *imu, Motors *motors, Remote *remote);
+	FlightController(IMU *imu, Motors *motors, Remote *remote, flight_mode Fm);
 	FlightController();
 	FlightController(const FlightController &obj) = delete;
 	FlightController& operator=(const FlightController &obj) = delete;
+
 	void initialise();
 	void loop();
-	void process();
-	void fcDebug(debug_group debug);
-	void debugloop(int frequency, debug_group debug);
 
-protected:
-	void armController();
-	void disarmController();
-	void gyroLockCheck();
-	void extremeAngleCheck();
-
-	uint16_t _gyroFreezeCounter = 0;
 
 private:
-	static FlightController *_instance;
-	std::array<PID, NUM_PIDS> pidControllers;
-	Telemetry* _telem = nullptr;
+
+	FlightState _currentState;
+
 	IMU *_imu = nullptr;
 	Motors *_motors = nullptr;
 	Remote *_remote = nullptr;
 	flight_mode _Fm = FC_RATE_MODE;
-	arm_status _As = DISARMED;
-	bool _onGround = true;
-	UART_HandleTypeDef *_telemHuart = nullptr;
-	float _lastGyroValue = 0.0;
-	bool _emergencyStopped = false;
-	bool _watchdogReset = true;
-	bool _watchdogStop = false;
-	bool _telemetryFlag = false;
-	TIM_HandleTypeDef *_frequencyTimer = nullptr;
-	const int GYRO_FREEZE_THRESHOLD = 25000;
-	const uint8_t START_BYTE = 66;
-	const uint8_t STOP_BYTE = 66;
 
-	bool isArmed();
+	uint16_t _gyroFreezeCounter = 0;
+	std::array<PID, NUM_PIDS> pidControllers;
+	float _lastGyroValue = 0.0;
+	const int GYRO_FREEZE_THRESHOLD = 25000;
+
+
+	void setState(FlightState newState);
+	void onEnterState(FlightState state);
+	void onExitState(FlightState state);
+	void process();
+	void gyroLockCheck();
+	void extremeAngleCheck();
+	void fcDebug(debug_group debug);
 	void safetyChecks();
-	void armCheck();
-	void emergencyStop(emergency_stop reason);
 	void resetPIDIntegrals();
 	void computePIDs();
 	void computeMotorOutputs();
-	bool minThrottle();
-	void debugArmStatus();
 	void initialisePIDs();
-	void sendTelemetryData();
 	void indicateEmergency(emergency_stop reason);
 	void emergencyBlink(int delayMs);
-	void initialisePIDS();
 
 };
 

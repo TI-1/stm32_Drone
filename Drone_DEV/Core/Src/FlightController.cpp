@@ -10,24 +10,22 @@
 
 //TODO set up watchdog timer
 
-FlightController::FlightController(IMU *imu, Motors *motors, Remote *remote,
-		UART_HandleTypeDef *telem) :
-		_imu(imu), _motors(motors), _remote(remote), _telemHuart(telem) {
-	HAL_GPIO_WritePin(RedLED_GPIO_Port, RedLED_Pin, GPIO_PIN_SET);
+FlightController::FlightController(IMU *imu, Motors *motors, Remote *remote) :
+		_imu(imu), _motors(motors), _remote(remote) {
+	setState(BOOTING);
 	initialise();
 
 }
 
 FlightController::FlightController(IMU *imu, Motors *motors, Remote *remote,
-		flight_mode Fm, UART_HandleTypeDef *telem) :
-		_imu(imu), _motors(motors), _remote(remote), _Fm(Fm), _telemHuart(
-				telem){
-	HAL_GPIO_WritePin(RedLED_GPIO_Port, RedLED_Pin, GPIO_PIN_SET);
+		flight_mode Fm) :
+		_imu(imu), _motors(motors), _remote(remote), _Fm(Fm){
+	setState(BOOTING);
 	initialise();
 }
 
 FlightController::FlightController() {
-	HAL_GPIO_WritePin(RedLED_GPIO_Port, RedLED_Pin, GPIO_PIN_SET);
+	setState(BOOTING);
 	initialise();
 }
 
@@ -35,82 +33,79 @@ FlightController::FlightController() {
 
 void FlightController::initialise() {
 	if ( !_imu -> checkStatus()){
-		telemetry.sendMessage(IMU_INIT, 1);
+		setState(EMERGENCY_STOP);
+		indicateEmergency(IMU_INIT);
 	}
 	else{
-		HAL_GPIO_WritePin(RedLED_GPIO_Port, RedLED_Pin, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(YellowLED_GPIO_Port, YellowLED_Pin, GPIO_PIN_SET);
-		telemetry.sendMessage(IMU_INIT, 0);
+		setState(STANDBY);
 	}
 }
 
 void FlightController::loop() { //Loop rate currently determined by IMU dataReady rate = 200hz
-	if (_imu->dataReady()) {
-		_imu->readIMU();
-		process();
+	switch(_currentState){
+	case BOOTING:
+		break;
+
+	case STANDBY:
+		if(_remote -> getRemoteData(Arm) == 2000){
+			setState(ARMED);
+		}
+		break;
+
+	case ARMED:
+	case IN_FLIGHT:
+		if(_remote -> getRemoteData(Arm) != 2000){
+			setState(DISARMED);
+		}
+		if (_imu->dataReady()) {
+				_imu->readIMU();
+				process();
+			}
+		break;
+
+	case DISARMED:
+		if(_remote -> getRemoteData(Arm) == 2000){
+			setState(ARMED);
+		}
+		break;
+
+	case EMERGENCY_STOP:
+		break;
+
+	default:
+		break;
 	}
 }
 
 void FlightController::process() {
 	safetyChecks();
-	if (_onGround) {
-		resetPIDIntegrals();
+
+	if(_currentState == EMERGENCY_STOP){
+		return;
 	}
-	computePIDs();
-	computeMotorOutputs();
-	if (isArmed() && minThrottle()) {
-		_onGround = false;
-		_motors->command(On);
-	} else {
-		_onGround = true;
-		_motors->command(Off);
-	}
-}
 
-void FlightController::armController() {
-	_As = ARMED;
-	//TODO sort out telemetry message numbers
-	HAL_GPIO_WritePin(YellowLED_GPIO_Port, YellowLED_Pin, GPIO_PIN_RESET);
-	HAL_GPIO_WritePin(GreenLED_GPIO_Port, GreenLED_Pin, GPIO_PIN_SET);
-	telemetry.sendMessage(11, 1);
-}
-
-void FlightController::disarmController() {
-	_As = DISARMED;
-	//TODO sort out telemetry message numbers
-	HAL_GPIO_WritePin(YellowLED_GPIO_Port, YellowLED_Pin, GPIO_PIN_SET);
-	HAL_GPIO_WritePin(GreenLED_GPIO_Port, GreenLED_Pin, GPIO_PIN_RESET);
-	telemetry.sendMessage(11, 0);
-}
-
-bool FlightController::isArmed() {
-	return _As == ARMED;
-}
-
-void FlightController::armCheck() {
-	//TODO Add logic to check for signal lost and handle maybe throw an emergency stop
-	if (_remote->getRemoteData(Arm) == 1000 && _As != DISARMED) {
-			disarmController();
-	} else if (_remote->getRemoteData(Arm) == 2000 && _As != ARMED) {
-		armController();
+	if (_currentState == ARMED || _currentState == IN_FLIGHT){
+		computePIDs();
+		computeMotorOutputs();
+		if (_currentState == ARMED){
+			setState(IN_FLIGHT);
+		}
 	}
 }
+
 
 void FlightController::safetyChecks() {
-	armCheck();
-	if (isArmed()) {
 		gyroLockCheck();
 		extremeAngleCheck();
-	}
 }
 
 void FlightController::gyroLockCheck() {
-	if (floatComparison(_imu->Gyro(Y), _lastGyroValue) && !_onGround) {
+	if (floatComparison(_imu->Gyro(Y), _lastGyroValue) && _currentState == IN_FLIGHT) {
 		_gyroFreezeCounter++;
 	}
 	if (_gyroFreezeCounter >= GYRO_FREEZE_THRESHOLD) {
-		telemetry.sendMessage(GYRO_FREEZE, 1);
-		emergencyStop(GYRO_FREEZE);
+		setState(EMERGENCY_STOP);
+		indicateEmergency(GYRO_FREEZE);
 	} else {
 		_gyroFreezeCounter = 0;
 		_lastGyroValue = _imu->Gyro(Y);
@@ -121,16 +116,9 @@ void FlightController::extremeAngleCheck() {
 
 	if (_imu->Pitch() > SAFE_ANGLE || _imu->Pitch() < -SAFE_ANGLE
 			|| _imu->Roll() > SAFE_ANGLE || _imu->Roll() < -SAFE_ANGLE) {
-		telemetry.sendMessage(EXTREME_ANGLE, 1);
-		emergencyStop(EXTREME_ANGLE);
+		setState(EMERGENCY_STOP);
+		indicateEmergency(EXTREME_ANGLE);
 	}
-}
-
-void FlightController::emergencyStop(emergency_stop reason) {
-	_emergencyStopped = true;
-	_motors->command(Off);
-	indicateEmergency(reason);
-
 }
 
 void FlightController::resetPIDIntegrals() {
@@ -183,11 +171,66 @@ void FlightController::computeMotorOutputs() {
 					- pidControllers[YAW].getOutput());
 }
 
-bool FlightController::minThrottle() {
-	return _remote->getRemoteData(Throttle) >= Throttle_Min;
+void FlightController::setState(FlightState newState) {
+	if (_currentState != newState) {
+	        onExitState(_currentState);
+	        _currentState = newState;
+	        onEnterState(newState);
+	    }
 }
 
-void FlightController::initialisePIDS(){
+void FlightController::onEnterState(FlightState state) {
+	switch (state) {
+	case BOOTING:
+	    HAL_GPIO_WritePin(RedLED_GPIO_Port, RedLED_Pin, GPIO_PIN_SET);
+	    break;
+
+	case STANDBY:
+	    HAL_GPIO_WritePin(YellowLED_GPIO_Port, YellowLED_Pin, GPIO_PIN_SET);
+	    break;
+
+	case ARMED:
+	    HAL_GPIO_WritePin(GreenLED_GPIO_Port, GreenLED_Pin, GPIO_PIN_SET);
+	    break;
+
+	case DISARMED:
+		_motors->command(Off);
+		resetPIDIntegrals();
+		break;
+
+	case IN_FLIGHT:
+	    _motors->command(On);
+	    break;
+
+	case EMERGENCY_STOP:
+	    _motors->command(Off);
+	    break;
+
+	default:
+	    break;
+	}
+}
+
+void FlightController::onExitState(FlightState state) {
+	 switch (state) {
+	 case BOOTING:
+	     HAL_GPIO_WritePin(RedLED_GPIO_Port, RedLED_Pin, GPIO_PIN_RESET);
+	     break;
+
+	 case STANDBY:
+	     HAL_GPIO_WritePin(YellowLED_GPIO_Port, YellowLED_Pin, GPIO_PIN_RESET);
+	     break;
+
+	 case ARMED:
+	     HAL_GPIO_WritePin(GreenLED_GPIO_Port, GreenLED_Pin, GPIO_PIN_RESET);
+	     break;
+
+	 default:
+	     break;
+	 }
+}
+
+void FlightController::initialisePIDs(){
 	pidControllers[ROLL] = PID(1.0, 0.1, 0.05, 100.0);
 	pidControllers[PITCH] = PID(1.0, 0.1, 0.05, 100.0);
 	pidControllers[YAW] = PID(1.0, 0.1, 0.05, 100.0);
@@ -198,7 +241,6 @@ void FlightController::initialisePIDS(){
 void FlightController::fcDebug(debug_group debug) {
 	switch (debug) {
 	case ALL:
-		debugArmStatus();
 		_imu->debugGyro();
 		_imu->debugYPR();
 		pidControllers[ROLL].debugPID("X");
@@ -229,27 +271,12 @@ void FlightController::fcDebug(debug_group debug) {
 		_motors->DebugMotors();
 		break;
 	case FC_STATUS:
-		debugArmStatus();
 		break;
 	default:
 		break;
 	}
 }
 
-
-void FlightController::debugArmStatus() {
-	Debug(printf("Arm status is:%s\r\n", isArmed() ? "true" : "false"));
-}
-
-
-void FlightController::debugloop(int frequency, debug_group debug) {
-	static long unsigned int start = HAL_GetTick();
-	if (HAL_GetTick() - start
-			> static_cast<long unsigned int>(1000 / frequency)) {
-		fcDebug(debug);
-		start = HAL_GetTick();
-	}
-}
 void FlightController::indicateEmergency(emergency_stop reason) {
 	switch (reason) {
 	case GYRO_FREEZE:
@@ -292,48 +319,3 @@ void FlightController::emergencyBlink(int delayMs) {
 	}
 }
 
-void FlightController::updateParams() {
-	mavlink_param_set_t param;
-	_telem -> processIncomingData(param);
-	switch(param.param_id[0]){
-	case 'r':
-		if(param.param_id[5] == 'P'){
-			pidControllers[ROLL].setkp(param.param_value);
-		}
-		else if (param.param_id[5] == 'I'){
-			pidControllers[ROLL].setki(param.param_value);
-		}
-		else if (param.param_id[5] == 'D'){
-			pidControllers[ROLL].setkd(param.param_value);
-		}
-		break;
-
-	case 'p':
-		if(param.param_id[6] == 'P'){
-			pidControllers[PITCH].setkp(param.param_value);
-		}
-		else if (param.param_id[6] == 'I'){
-			pidControllers[PITCH].setki(param.param_value);
-		}
-		else if (param.param_id[6] == 'D'){
-			pidControllers[PITCH].setkd(param.param_value);
-		}
-		break;
-
-	case 'y':
-		if(param.param_id[4] == 'P'){
-			pidControllers[PITCH].setkp(param.param_value);
-		}
-		else if (param.param_id[4] == 'I'){
-			pidControllers[PITCH].setki(param.param_value);
-		}
-		else if (param.param_id[4] == 'D'){
-			pidControllers[PITCH].setkd(param.param_value);
-		}
-		break;
-
-	default:
-		break;
-	}
-
-}
