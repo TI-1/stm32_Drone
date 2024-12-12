@@ -7,13 +7,14 @@
 
 #include "motors.h"
 
-
 /**
  * Constructor for Motor class
  * @param pwm_timer set which timer motors use
  */
-Motors::Motors(TIM_HandleTypeDef *pwm_timer):_pwmTimer(pwm_timer),_counterPeriod( _pwmTimer -> Instance -> ARR) {
-
+Motors::Motors(TIM_HandleTypeDef *pwm_timer):_pwmTimer(pwm_timer),_counterPeriod( _pwmTimer ? _pwmTimer -> Instance -> ARR : 0) {
+	if (!_pwmTimer) {
+		printf("Error: PWM Timer is null\n");
+	}
 }
 
 void Motors::initialise(){
@@ -29,7 +30,12 @@ void Motors::initialise(){
  * @param output The motor output level
  */
 void Motors::setOutput(motorPosition pos, uint16_t output) {
-	_output[pos] = output;
+	if (pos >= 0 && pos < 4) {
+		_output[pos] = output;
+	}
+	else {
+		printf("Error: Invaleid motor position\n");
+	}	
 }
 
 /**
@@ -38,7 +44,7 @@ void Motors::setOutput(motorPosition pos, uint16_t output) {
  * @return The motor output level
  */
 uint16_t Motors::getOutput(motorPosition pos) {
-	return _output[pos];
+	return (pos >= 0 && pos < 4) ? _output[pos] : 0;
 }
 
 /**
@@ -46,7 +52,7 @@ uint16_t Motors::getOutput(motorPosition pos) {
  * @param state Turns the motors on or off
  */
 void Motors::command(state state) {
-	if (state){
+	if (state == state::On){
 		set_registers();
 	}
 	else {
@@ -58,6 +64,7 @@ void Motors::command(state state) {
 
 //TODO figure out motor calibration
 void Motors::callibrate() {
+	// Calibration logic not yet implemented
 }
 
 /**
@@ -76,13 +83,8 @@ void Motors::set_registers() {
  * @return Mapped output
  */
 uint16_t Motors::mapMotors(uint16_t value) {
-	if(value > 2000){
-		return _counterPeriod * _maxDutyCycle;
-	}
-	if (value < 1000){
-		return _counterPeriod * _minDutyCycle;
-	}
-	 return (value - _minRCInput) * (_counterPeriod* (_maxDutyCycle - _minDutyCycle)) / (_maxRCInput - _minRCInput) + (_counterPeriod * _minDutyCycle);
+	value = std::clamp(value, _minRCInput, _maxRCInput);
+	return (value - _minRCInput) * (_counterPeriod* (_maxDutyCycle - _minDutyCycle)) / (_maxRCInput - _minRCInput) + (_counterPeriod * _minDutyCycle);
 }
 
 /**

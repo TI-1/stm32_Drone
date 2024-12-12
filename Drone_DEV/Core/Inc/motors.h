@@ -12,6 +12,7 @@
 #include "stm32f1xx.h"
 #include "usart.h"
 #include <stdio.h>
+#include <algorithm>
 
 enum motorPosition {
 	FrontLeft, FrontRight, RearLeft, RearRight
