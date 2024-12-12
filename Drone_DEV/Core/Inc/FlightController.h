@@ -16,6 +16,7 @@
 #include "usart.h"
 #include "telemetry.h"
 #include <array>
+#include "ctype.h"
 
 #define SAFETY_POSITION_MIN 1100 //TODO think of better name
 #define SAFETY_POSITION_MAX	1950
@@ -73,8 +74,8 @@ enum {
 class FlightController {
 public:
 
-	FlightController(IMU *imu, Motors *motors, Remote *remote);
-	FlightController(IMU *imu, Motors *motors, Remote *remote, flight_mode Fm);
+	FlightController(IMU *imu, Motors *motors, Remote *remote, Telemetry *telemetry);
+	FlightController(IMU *imu, Motors *motors, Remote *remote,Telemetry *telemetry, flight_mode Fm);
 	FlightController();
 	FlightController(const FlightController &obj) = delete;
 	FlightController& operator=(const FlightController &obj) = delete;
@@ -90,6 +91,7 @@ private:
 	IMU *_imu = nullptr;
 	Motors *_motors = nullptr;
 	Remote *_remote = nullptr;
+	Telemetry* _telem = nullptr;
 	flight_mode _Fm = FC_RATE_MODE;
 
 	uint16_t _gyroFreezeCounter = 0;
@@ -112,6 +114,8 @@ private:
 	void initialisePIDs();
 	void indicateEmergency(emergency_stop reason);
 	void emergencyBlink(int delayMs);
+	void updatePIDs(mavlink_param_set_t& paramSet);
+	void processCommands();
 
 };
 

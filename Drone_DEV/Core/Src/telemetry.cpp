@@ -108,4 +108,5 @@ void Telemetry::processIncomingData(mavlink_param_set_t &paramSet) {
 
 		}
 	}
+	paramSet.target_system = 0;
 }

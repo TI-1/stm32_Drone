@@ -10,16 +10,16 @@
 
 //TODO set up watchdog timer
 
-FlightController::FlightController(IMU *imu, Motors *motors, Remote *remote) :
-		_imu(imu), _motors(motors), _remote(remote) {
+FlightController::FlightController(IMU *imu, Motors *motors, Remote *remote, Telemetry *telemetry) :
+		_imu(imu), _motors(motors), _remote(remote), _telem(telemetry) {
 	setState(BOOTING);
 	initialise();
 
 }
 
-FlightController::FlightController(IMU *imu, Motors *motors, Remote *remote,
+FlightController::FlightController(IMU *imu, Motors *motors, Remote *remote, Telemetry *telemetry,
 		flight_mode Fm) :
-		_imu(imu), _motors(motors), _remote(remote), _Fm(Fm){
+		_imu(imu), _motors(motors), _remote(remote), _telem(telemetry), _Fm(Fm){
 	setState(BOOTING);
 	initialise();
 }
@@ -183,27 +183,33 @@ void FlightController::onEnterState(FlightState state) {
 	switch (state) {
 	case BOOTING:
 	    HAL_GPIO_WritePin(RedLED_GPIO_Port, RedLED_Pin, GPIO_PIN_SET);
+		_telem->setState(MAV_STATE_BOOT);
 	    break;
 
 	case STANDBY:
 	    HAL_GPIO_WritePin(YellowLED_GPIO_Port, YellowLED_Pin, GPIO_PIN_SET);
+		_telem->setState(MAV_STATE_STANDBY);
 	    break;
 
 	case ARMED:
 	    HAL_GPIO_WritePin(GreenLED_GPIO_Port, GreenLED_Pin, GPIO_PIN_SET);
+		_telem->setState(MAV_STATE_ACTIVE);
 	    break;
 
 	case DISARMED:
 		_motors->command(Off);
 		resetPIDIntegrals();
+		_telem->setState(MAV_STATE_STANDBY);
 		break;
 
 	case IN_FLIGHT:
 	    _motors->command(On);
+		_telem->setState(MAV_STATE_ACTIVE);
 	    break;
 
 	case EMERGENCY_STOP:
 	    _motors->command(Off);
+		_telem->setState(MAV_STATE_EMERGENCY);
 	    break;
 
 	default:
@@ -236,6 +242,55 @@ void FlightController::initialisePIDs(){
 	pidControllers[YAW] = PID(1.0, 0.1, 0.05, 100.0);
 	pidControllers[ANGLE_ROLL] = PID(1.5, 0.2, 0.1, 100.0);
 	pidControllers[ANGLE_PITCH] = PID(1.5, 0.2, 0.1, 100.0);
+}
+
+void FlightController::updatePIDs(mavlink_param_set_t& paramSet) {
+	PID* targetPID = nullptr;
+	switch (tolower(paramSet.param_id[0])) { // Convert to lowercase for consistency
+	case 'y': // Yaw
+		targetPID = &pidControllers[YAW];
+		break;
+	case 'p': // Pitch
+		targetPID = &pidControllers[PITCH];
+		break;
+	case 'r': // Roll
+		targetPID = &pidControllers[ROLL];
+		break;
+	default:
+		LOG_DEBUG("Invalid PID type in param_id");
+		return;
+	}
+
+	// Determine which parameter field to update based on param_id[1]
+	switch (tolower(paramSet.param_id[1])) { // Convert to lowercase for consistency
+	case 'p': // Proportional gain
+		targetPID->setkp(paramSet.param_value);
+		LOG_DEBUG("Updated Proportional gain");
+		break;
+	case 'i': // Integral gain
+		targetPID->setki(paramSet.param_value);
+		LOG_DEBUG("Updated Integral gain");
+		break;
+	case 'd': // Derivative gain
+		targetPID->setkd(paramSet.param_value);
+		LOG_DEBUG("Updated Derivative gain");
+		break;
+	default:
+		LOG_DEBUG("Invalid PID field in param_id");
+		return;
+	}
+}
+
+void FlightController::processCommands() {
+	mavlink_param_set_t paramSet;
+	_telem->processIncomingData(paramSet);
+	switch (paramSet.target_system) {
+		case 1:
+			updatePIDs(paramSet);
+			break;
+		default:
+			break;
+	}
 }
 
 void FlightController::fcDebug(debug_group debug) {
@@ -295,12 +350,6 @@ void FlightController::indicateEmergency(emergency_stop reason) {
 		while (1) {
 			LOG_DEBUG("EMERGENCY STOP: IMU INITIALISATION FAILED");
 			emergencyBlink(3000);
-		}
-		break;
-	case WATCHDOG_RESET:
-		while (1) {
-			LOG_DEBUG("EMERGENCY STOP: FAILED TO RESET WATCHDOG");
-			emergencyBlink(5000);
 		}
 		break;
 	default:
