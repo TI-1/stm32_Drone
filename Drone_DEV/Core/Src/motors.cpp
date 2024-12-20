@@ -83,8 +83,20 @@ void Motors::set_registers() {
  * @return Mapped output
  */
 uint16_t Motors::mapMotors(uint16_t value) {
-	value = std::clamp(value, _minRCInput, _maxRCInput);
-	return (value - _minRCInput) * (_counterPeriod* (_maxDutyCycle - _minDutyCycle)) / (_maxRCInput - _minRCInput) + (_counterPeriod * _minDutyCycle);
+	// Clamp the input value to the valid range
+	if (value > _maxRCInput) {
+		return _counterPeriod * _maxDutyCycle;
+	}
+	if (value < _minRCInput) {
+		return _counterPeriod * _minDutyCycle;
+	}
+
+	// Map the input value from RC input range to duty cycle range
+	const uint16_t rcRange = _maxRCInput - _minRCInput;
+	const float dutyCycleRange = _maxDutyCycle - _minDutyCycle;
+
+	return ((value - _minRCInput) * (_counterPeriod * dutyCycleRange) / rcRange) +
+		   (_counterPeriod * _minDutyCycle);
 }
 
 /**
