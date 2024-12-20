@@ -4,6 +4,11 @@
 #metadata
 .metadata/
 
+#visualstudio
+.vs
+.vscode
+cmake
+
 #Debug
 Debug/
 debug/
@@ -29,6 +34,7 @@ release
 *.a
 *.la
 *.lo
+Core/Mavlink
 
 # Shared objects
 *.dll
