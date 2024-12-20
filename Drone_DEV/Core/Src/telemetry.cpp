@@ -21,9 +21,8 @@ void Telemetry::sendData(IMU *imu) {
 		mavlink_message_t msg;
 		mavlink_msg_attitude_pack(
 			1, 200, &msg, dataTime,
-			imu->Roll() * M_PI/180, imu->Pitch() * M_PI / 180, imu->Yaw() * M_PI / 180,
-			imu->Gyro(X) * M_PI / 180, imu->Gyro(Y) * M_PI / 180, imu->Gyro(Z) * M_PI / 180
-		);
+			imu->Roll() * M_PI / 180, imu->Pitch() * M_PI / 180, imu->Yaw() * M_PI / 180,
+			imu->Gyro(X) * M_PI / 180, imu->Gyro(Y) * M_PI / 180, imu->Gyro(Z) * M_PI / 180);
 		SendMavLinkMessage(&msg);
 		_lastSendTime = currentTime;
 		}
@@ -32,10 +31,7 @@ void Telemetry::sendData(IMU *imu) {
 void Telemetry::sendStatusText(const char* text, uint8_t severity) {
 	mavlink_message_t msg;
 	mavlink_msg_statustext_pack(1, 1, &msg, severity, text,1,0);
-
-	uint8_t buffer[MAVLINK_MAX_PACKET_LEN];
-	uint16_t len = mavlink_msg_to_send_buffer(buffer, &msg);
-	HAL_UART_Transmit(_telemHuart, buffer, len, HAL_MAX_DELAY);
+	SendMavLinkMessage(&msg);
 }
 
 void Telemetry::sendHeartbeat() {
@@ -46,18 +42,42 @@ void Telemetry::sendHeartbeat() {
 		MAV_MODE_MANUAL_ARMED,
 		0,                   // Custom mode, can define modes here
 		_state);   // System state
-
-	uint8_t buffer[MAVLINK_MAX_PACKET_LEN];
-	uint16_t len = mavlink_msg_to_send_buffer(buffer, &msg);
-	HAL_UART_Transmit(_telemHuart, buffer, len, HAL_MAX_DELAY);
+	SendMavLinkMessage(&msg);
 }
 
 
 void Telemetry::SendMavLinkMessage(mavlink_message_t *msg) {
-	int len = mavlink_msg_to_send_buffer(_mavlink_buffer, msg);
-	HAL_UART_Transmit(_telemHuart, _mavlink_buffer, len, 1000);
+	uint16_t len = mavlink_msg_to_send_buffer(_mavlink_buffer, msg);
+
+	if (_txBusy) {
+		for (uint16_t i = 0; i < len; i++) {
+			_txBuffer[_txBufferHead] = _mavlink_buffer[i];
+			_txBufferHead = (_txBufferHead + 1) % TELEMETRY_TX_BUFFER_SIZE;
+
+			if (_txBufferHead == _txBufferTail) {
+				_txBufferTail = (_txBufferTail + 1) % TELEMETRY_TX_BUFFER_SIZE; // Handle overflow
+			}
+		}
+		return;
+	}
+	_txBusy = true;
+	HAL_UART_Transmit_DMA(_telemHuart, _mavlink_buffer, len);
 }
 
+void Telemetry::onTxComplete() {
+	if (_txBufferTail != _txBufferHead) {
+		uint16_t len = 0;
+		while (_txBufferTail != _txBufferHead && len < MAVLINK_MAX_PACKET_LEN) {
+			_mavlink_buffer[len++] = _txBuffer[_txBufferTail];
+			_txBufferTail = (_txBufferTail + 1) % TELEMETRY_TX_BUFFER_SIZE;
+		}
+		HAL_UART_Transmit_DMA(_telemHuart, _mavlink_buffer, len);
+	}
+	else {
+		_txBusy = false;
+		HAL_UART_DMAStop(_telemHuart);
+	}
+}
 
 
 

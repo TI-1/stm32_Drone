@@ -13,11 +13,14 @@
 #include "imu.h"
 #include "mavlink.h"
 
+#define TELEMETRY_TX_BUFFER_SIZE 256   
+
 class Telemetry{
 public:
     Telemetry(UART_HandleTypeDef *telem, uint32_t frequency);
     Telemetry(const Telemetry& t) = delete;
     Telemetry& operator=(const Telemetry &obj) = delete;
+
     void sendData(IMU *imu);
     void sendMessage(uint8_t message_code, uint8_t value);
     void SendMavLinkMessage(mavlink_message_t *msg);
@@ -27,6 +30,7 @@ public:
     UART_HandleTypeDef* getUartHandle();
     void onReceiveComplete();
     void processIncomingData(mavlink_param_set_t &paramSet);
+    void onTxComplete();
 private:
     UART_HandleTypeDef *_telemHuart;
     MAV_STATE _state = MAV_STATE_UNINIT;
@@ -34,11 +38,14 @@ private:
     uint32_t _sendInterval; // Time in milliseconds
     uint32_t _startTime;
     uint8_t _mavlink_buffer[MAVLINK_MAX_PACKET_LEN];
-    uint8_t _recievebuffer[MAVLINK_MAX_PACKET_LEN];
+    uint8_t _recievebuffer[MAVLINK_MAX_PACKET_LEN] = { 0 };
     uint8_t _tempbuffer[2];
+    uint8_t _txBuffer[TELEMETRY_TX_BUFFER_SIZE];
     uint16_t _writeIndex = 0;
     uint16_t _readIndex = 0;
-    char _gyrobuf[100];
+    uint16_t _txBufferHead = 0;
+    uint16_t _txBufferTail = 0;
+    bool _txBusy = false;
 
 };
 
