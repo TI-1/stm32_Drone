@@ -20,6 +20,7 @@ class IMU {
 public:
 	IMU(uint8_t Ascale, uint8_t Gscale, uint8_t sampleRate,
 			I2C_HandleTypeDef *hi2c);
+	IMU(I2C_HandleTypeDef* hi2c);
 	IMU();
 	IMU(const IMU &obj) = delete;
 	IMU& operator=(const IMU &obj) = delete;

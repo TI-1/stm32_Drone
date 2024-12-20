@@ -19,6 +19,8 @@ IMU::IMU(uint8_t Ascale = ACCEL_FS_SEL_4G, uint8_t Gscale = GYRO_FS_SEL_1000DPS,
 
 IMU::IMU():_mpu(nullptr),_AScale(ACCEL_FS_SEL_4G),_GScale(GYRO_FS_SEL_1000DPS),_sampleRate(4){}
 
+IMU::IMU(I2C_HandleTypeDef* hi2c) : IMU(ACCEL_FS_SEL_4G, GYRO_FS_SEL_1000DPS, 4, hi2c) {}
+
 void IMU::initialise(){
 	init(_AScale,_GScale,_sampleRate);
 }
